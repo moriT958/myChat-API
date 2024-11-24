@@ -21,6 +21,9 @@ func main() {
 		json.NewEncoder(w).Encode(res)
 	})
 
+	mux.HandleFunc("POST /threads", CreateThreadHandler)
+	mux.HandleFunc("GET /threads", ReadThreadList)
+
 	s := http.Server{
 		Addr:         "0.0.0.0:8080",
 		Handler:      mux,
