@@ -22,7 +22,11 @@ func main() {
 	})
 
 	mux.HandleFunc("POST /threads", CreateThreadHandler)
-	mux.HandleFunc("GET /threads", ReadThreadList)
+	mux.HandleFunc("GET /threads", ReadThreadListHandler)
+	mux.HandleFunc("GET /threads/{uuid}", ReadThreadDetailHandler)
+
+	mux.HandleFunc("POST /posts", CreatePostHandler)
+	mux.HandleFunc("GET /posts/{threadUuid}", GetPostListHandler)
 
 	s := http.Server{
 		Addr:         "0.0.0.0:8080",
