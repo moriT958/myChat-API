@@ -1,13 +1,35 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"time"
+
+	_ "github.com/lib/pq"
 )
 
+var db *sql.DB
+
+// var logger slog.Logger
+
 func main() {
+	var err error
+
+	// f, err := os.OpenFile("log.txt", os.O_APPEND|os.O_CREATE|os.O_RDONLY, 0644)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// logWriter := slog.NewTextHandler(f, nil)
+	// logger = *slog.New(logWriter)
+
+	dsn := os.Getenv("DATABASE_URL")
+	db, err = sql.Open("postgres", dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/hello-world", func(w http.ResponseWriter, r *http.Request) {

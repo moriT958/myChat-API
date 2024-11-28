@@ -18,17 +18,23 @@ func CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := BaseThreadResponse{
-		Uuid:      uuid.New().String(),
-		Topic:     reqSchema.Topic,
-		CreatedAt: time.Now().Format("2006-01-02 15:04:05"),
+	var res BaseThreadResponse
+	var createdAtTime time.Time
+
+	q := `INSERT INTO threads (uuid, topic, created_at) VALUES ($1, $2, now()) RETURNING uuid, topic, created_at;`
+	row := db.QueryRow(q, uuid.New().String(), reqSchema.Topic)
+	if err := row.Scan(&res.Uuid, &res.Topic, &createdAtTime); err != nil {
+		log.Println(err)
+		http.Error(w, "Failed to scan db data", http.StatusInternalServerError)
+		return
 	}
+	// TODO: timezoneがうまく適応されない。要修正
+	res.CreatedAt = createdAtTime.Format("2006-01-02 15:04:05")
 
 	w.Header().Set("Content-Type", "application/json; charset=utf8")
 	w.WriteHeader(http.StatusCreated)
 
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
-		log.Println("encoding error: ", err)
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
