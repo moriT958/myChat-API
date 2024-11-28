@@ -1,12 +1,13 @@
 services:
   postgres:
     container_name: postgres
-    image: postgres:latest
+    image: postgres:15
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: mychat
       PGDATA: /data/postgres
+      TZ: "Asia/Tokyo"
     volumes:
       - ./docker/postgres:/data/postgres
     ports:
