@@ -128,9 +128,9 @@ func ReadThreadDetailHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to get db data", http.StatusInternalServerError)
 		return
 	}
-	res.Posts = make([]postsOnThread, 0)
+	res.Posts = make([]postOnThread, 0)
 	for rows.Next() {
-		var p postsOnThread
+		var p postOnThread
 		if err := rows.Scan(&p.Uuid, &p.Body, &tmpTime); err != nil {
 			log.Println("failed to get posts: ", err)
 			http.Error(w, "Failed to scan db data", http.StatusInternalServerError)
@@ -149,20 +149,34 @@ func ReadThreadDetailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO: Post機能のDB接続
 func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	var reqSchema CreatePostRequest
 	if err := json.NewDecoder(r.Body).Decode(&reqSchema); err != nil {
 		log.Println(err)
 		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
 	}
 
-	res := BasePostResponse{
-		Uuid:       uuid.NewString(),
-		Body:       reqSchema.Body,
-		ThreadUuid: reqSchema.ThreadUuid,
-		CreatedAt:  time.Now().Format("2006-01-02 15:04:05"),
+	var thread_id int
+	q := "SELECT id FROM threads WHERE uuid = $1;"
+	row := db.QueryRow(q, reqSchema.ThreadUuid)
+	if err := row.Scan(&thread_id); err != nil {
+		log.Println(err)
+		http.Error(w, "Failed scan db data", http.StatusInternalServerError)
+		return
 	}
+
+	var res BasePostResponse
+	var tmpTime time.Time
+	q = `INSERT INTO posts (uuid, body, thread_id, created_at) VALUES ($1, $2, $3, now()) RETURNING uuid, body, created_at;`
+	row = db.QueryRow(q, uuid.NewString(), reqSchema.Body, thread_id)
+	if err := row.Scan(&res.Uuid, &res.Body, &tmpTime); err != nil {
+		log.Println(err)
+		http.Error(w, "Failed to scan db data", http.StatusInternalServerError)
+		return
+	}
+	res.ThreadUuid = reqSchema.ThreadUuid
+	res.CreatedAt = tmpTime.Format("2006-01-02 15:04:05")
 
 	w.Header().Set("Content-Type", "application/json; charset=utf8")
 	w.WriteHeader(http.StatusCreated)
@@ -174,20 +188,12 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetPostListHandler(w http.ResponseWriter, r *http.Request) {
+	var err error
+
 	threadUuid := r.PathValue("threadUuid")
-	var res GetPostListResponse
-	res.Posts = []BasePostResponse{}
-	for _, p := range PostData {
-		if p.ThreadUuid == threadUuid {
-			res.Posts = append(res.Posts, p)
-		}
-	}
 
 	q := r.URL.Query()
-
-	var err error
 	var offset, limit int
-
 	if val, exits := q["offset"]; exits && len(val) > 0 {
 		offset, err = strconv.Atoi(val[0])
 		if err != nil || offset < 0 {
@@ -198,7 +204,6 @@ func GetPostListHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		offset = 0
 	}
-
 	if val, exists := q["limit"]; exists && len(val) > 0 {
 		limit, err = strconv.Atoi(val[0])
 		if err != nil || limit < 0 {
@@ -210,15 +215,29 @@ func GetPostListHandler(w http.ResponseWriter, r *http.Request) {
 		limit = 3
 	}
 
-	start := offset
-	end := offset + limit
-	if start > len(res.Posts) {
-		start = len(res.Posts)
+	var res GetPostListResponse
+	res.Posts = make([]postOnThread, 0)
+
+	sql := `SELECT posts.uuid, posts.body, posts.created_at 
+			FROM posts JOIN threads ON posts.thread_id = threads.id 
+			WHERE threads.uuid = $1;`
+	rows, err := db.Query(sql, threadUuid)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Failed to get post data", http.StatusInternalServerError)
+		return
 	}
-	if end > len(res.Posts) {
-		end = len(res.Posts)
+	var p postOnThread
+	var tmpTime time.Time
+	for rows.Next() {
+		if err := rows.Scan(&p.Uuid, &p.Body, &tmpTime); err != nil {
+			log.Println(err)
+			http.Error(w, "Failed to scan db data", http.StatusInternalServerError)
+			return
+		}
+		p.CreatedAt = tmpTime.Format("2006-01-02 15:04:05")
+		res.Posts = append(res.Posts, p)
 	}
-	res.Posts = res.Posts[start:end]
 
 	w.Header().Set("Content-Type", "application/json; charset=utf8")
 	w.WriteHeader(http.StatusOK)
