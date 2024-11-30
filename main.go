@@ -35,16 +35,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/hello-world", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json; charset=utf8")
-		w.WriteHeader(http.StatusOK)
-
-		res := map[string]string{
-			"msg": "Hello, World!",
-		}
-
-		json.NewEncoder(w).Encode(res)
-	})
+	mux.HandleFunc("GET /hello-world", helloWorldHandler)
 
 	mux.HandleFunc("POST /threads", CreateThreadHandler)
 	mux.HandleFunc("GET /threads", ReadThreadListHandler)
@@ -59,5 +50,17 @@ func main() {
 		ReadTimeout:  time.Duration(10 * int64(time.Second)),
 		WriteTimeout: time.Duration(600 * int64(time.Second)),
 	}
+	log.Printf("Server started at port %s!\n", s.Addr)
 	log.Fatal(s.ListenAndServe())
+}
+
+func helloWorldHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf8")
+	w.WriteHeader(http.StatusOK)
+
+	res := map[string]string{
+		"msg": "Hello, World!",
+	}
+
+	json.NewEncoder(w).Encode(res)
 }
