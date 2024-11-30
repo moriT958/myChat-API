@@ -19,16 +19,10 @@ type GetThreadListResponse struct {
 }
 
 type GetThreadDetailResponse struct {
-	Uuid      string          `json:"uuid"`
-	Topic     string          `json:"topic"`
-	CreatedAt string          `json:"createdAt"`
-	Posts     []postsOnThread `json:"posts"`
-}
-
-type postsOnThread struct {
-	Uuid      string `json:"uuid"`
-	Body      string `json:"body"`
-	CreatedAt string `json:"createdAt"`
+	Uuid      string         `json:"uuid"`
+	Topic     string         `json:"topic"`
+	CreatedAt string         `json:"createdAt"`
+	Posts     []postOnThread `json:"posts"`
 }
 
 //
@@ -48,5 +42,11 @@ type CreatePostRequest struct {
 }
 
 type GetPostListResponse struct {
-	Posts []BasePostResponse `json:"posts"`
+	Posts []postOnThread `json:"posts"`
+}
+
+type postOnThread struct {
+	Uuid      string `json:"uuid"`
+	Body      string `json:"body"`
+	CreatedAt string `json:"createdAt"`
 }
