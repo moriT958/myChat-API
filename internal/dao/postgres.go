@@ -1,6 +1,10 @@
 package dao
 
-import "database/sql"
+import (
+	"database/sql"
+
+	_ "github.com/lib/pq"
+)
 
 type DAO struct {
 	DB *sql.DB
