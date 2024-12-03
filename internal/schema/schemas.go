@@ -1,4 +1,4 @@
-package main
+package schema
 
 //
 // Thread schemas
@@ -22,31 +22,27 @@ type GetThreadDetailResponse struct {
 	Uuid      string         `json:"uuid"`
 	Topic     string         `json:"topic"`
 	CreatedAt string         `json:"createdAt"`
-	Posts     []postOnThread `json:"posts"`
+	Posts     []PostOnThread `json:"posts"`
 }
 
-type postOnThread struct {
+type PostOnThread struct {
 	Uuid      string `json:"uuid"`
 	Body      string `json:"body"`
 	CreatedAt string `json:"createdAt"`
 }
 
 //
-// Post schemas
+// Post schemas (websocket)
 //
 
-// type BasePostResponse struct {
-// 	Uuid       string `json:"uuid"`
-// 	Body       string `json:"body"`
-// 	ThreadUuid string `json:"threadUuid"`
-// 	CreatedAt  string `json:"createdAt"`
-// }
+type InMessage struct {
+	Body       string `json:"body"`
+	ThreadUuid string `json:"threadUuid"`
+}
 
-// type CreatePostRequest struct {
-// 	Body       string `json:"body"`
-// 	ThreadUuid string `json:"threadUuid"`
-// }
-
-// type GetPostListResponse struct {
-// 	Posts []postOnThread `json:"posts"`
-// }
+type OutMessage struct {
+	Uuid       string `json:"uuid"`
+	Body       string `json:"body"`
+	ThreadUuid string `json:"threadUuid"`
+	CreatedAt  string `json:"createdAt"`
+}
