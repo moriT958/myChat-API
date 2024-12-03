@@ -41,11 +41,11 @@ func main() {
 	mux.HandleFunc("GET /threads", ReadThreadListHandler)
 	mux.HandleFunc("GET /threads/{uuid}", ReadThreadDetailHandler)
 
-	mux.HandleFunc("POST /posts", CreatePostHandler)
-	mux.HandleFunc("GET /posts/{threadUuid}", GetPostListHandler)
+	// mux.HandleFunc("POST /posts", CreatePostHandler)
+	// mux.HandleFunc("GET /posts/{threadUuid}", GetPostListHandler)
 
 	// websocket (test)
-	go manager.Start()
+	go hub.Start()
 	mux.HandleFunc("/ws", wsPostHandler)
 
 	s := http.Server{
