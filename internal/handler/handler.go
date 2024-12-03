@@ -8,8 +8,8 @@ import (
 )
 
 type Handler struct {
-	Data *dao.DAO
-	Hub  *Hub
+	DAO *dao.DAO
+	Hub *Hub
 	websocket.Upgrader
 }
 
@@ -23,7 +23,7 @@ func New(d *dao.DAO) *Handler {
 	hub := NewHub()
 
 	return &Handler{
-		Data:     d,
+		DAO:      d,
 		Hub:      hub,
 		Upgrader: upgrader,
 	}
