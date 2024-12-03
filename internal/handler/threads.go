@@ -134,7 +134,7 @@ func (h *Handler) ReadThreadDetailHandler(w http.ResponseWriter, r *http.Request
 		Uuid:      thread.Uuid,
 		Topic:     thread.Topic,
 		CreatedAt: thread.CreatedAt.Format("2006-01-02 15:04:05"),
-		Posts:     make([]schema.PostOnThread, len(posts)),
+		Posts:     make([]schema.PostOnThread, 0),
 	}
 	for _, p := range posts {
 		res.Posts = append(res.Posts, schema.PostOnThread{
