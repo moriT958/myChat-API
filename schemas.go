@@ -25,28 +25,28 @@ type GetThreadDetailResponse struct {
 	Posts     []postOnThread `json:"posts"`
 }
 
-//
-// Post schemas
-//
-
-type BasePostResponse struct {
-	Uuid       string `json:"uuid"`
-	Body       string `json:"body"`
-	ThreadUuid string `json:"threadUuid"`
-	CreatedAt  string `json:"createdAt"`
-}
-
-type CreatePostRequest struct {
-	Body       string `json:"body"`
-	ThreadUuid string `json:"threadUuid"`
-}
-
-type GetPostListResponse struct {
-	Posts []postOnThread `json:"posts"`
-}
-
 type postOnThread struct {
 	Uuid      string `json:"uuid"`
 	Body      string `json:"body"`
 	CreatedAt string `json:"createdAt"`
 }
+
+//
+// Post schemas
+//
+
+// type BasePostResponse struct {
+// 	Uuid       string `json:"uuid"`
+// 	Body       string `json:"body"`
+// 	ThreadUuid string `json:"threadUuid"`
+// 	CreatedAt  string `json:"createdAt"`
+// }
+
+// type CreatePostRequest struct {
+// 	Body       string `json:"body"`
+// 	ThreadUuid string `json:"threadUuid"`
+// }
+
+// type GetPostListResponse struct {
+// 	Posts []postOnThread `json:"posts"`
+// }

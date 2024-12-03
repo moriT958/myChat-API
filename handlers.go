@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"myChat-API/model"
 	"net/http"
 	"strconv"
 
@@ -20,7 +21,7 @@ func CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// データベースへの保存処理
-	var t Thread
+	var t model.Thread
 	q := `INSERT INTO threads (uuid, topic, created_at) VALUES ($1, $2, now()) RETURNING uuid, topic, created_at;`
 	row := db.QueryRow(q, uuid.NewString(), reqSchema.Topic)
 	if err := row.Scan(&t.Uuid, &t.Topic, &t.CreatedAt); err != nil {
@@ -69,7 +70,7 @@ func ReadThreadListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// データベースの格納処理
-	var t Thread
+	var t model.Thread
 	sql := `SELECT uuid, topic, created_at FROM threads LIMIT $1 OFFSET $2;`
 	rows, err := db.Query(sql, limit, offset)
 	if err != nil {
@@ -111,8 +112,8 @@ func ReadThreadDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 	// データベースの処理
 	var (
-		t Thread
-		p Post
+		t model.Thread
+		p model.Post
 	)
 	var thread_id int
 
