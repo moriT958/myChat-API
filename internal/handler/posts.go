@@ -33,26 +33,20 @@ func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Recieved: %+v\n", inMsg)
 
 		// Save to DB
-		var thread_id int
-		q := `SELECT id FROM threads WHERE uuid = $1;`
-		row := h.Data.DB.QueryRow(q, inMsg.ThreadUuid)
-		if err := row.Scan(&thread_id); err != nil {
-			log.Println(err)
+		threadId, err := h.DAO.GetThreadIdByUuid(inMsg.ThreadUuid)
+		if err != nil {
 			break
 		}
 
 		post := model.Post{
 			Uuid:      uuid.NewString(),
 			Body:      inMsg.Body,
-			ThreadId:  thread_id,
+			ThreadId:  threadId,
 			CreatedAt: time.Now(),
 		}
-
-		q = `INSERT INTO posts (uuid, body, thread_id, created_at) VALUES ($1, $2, $3, $4);`
-		if _, err := h.Data.DB.Exec(q, post.Uuid, post.Body, post.ThreadId, post.CreatedAt); err != nil {
+		if err := h.DAO.SavePost(post); err != nil {
 			log.Println(err)
-			http.Error(w, "Failed to scan db data", http.StatusInternalServerError)
-			return
+			break
 		}
 
 		outMsg := schema.OutMessage{
