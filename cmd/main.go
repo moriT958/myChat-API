@@ -1,52 +1,34 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"log"
-	"log/slog"
+	"myChat-API/internal/dao"
+	"myChat-API/internal/handler"
 	"net/http"
 	"os"
 	"time"
-
-	_ "github.com/lib/pq"
 )
 
-var db *sql.DB
-
-var logger slog.Logger
-
 func main() {
-	var err error
-
-	f, err := os.OpenFile("log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-	logWriter := slog.NewTextHandler(f, &slog.HandlerOptions{
-		AddSource: true,
-	})
-	logger = *slog.New(logWriter)
 
 	dsn := os.Getenv("DATABASE_URL")
-	db, err = sql.Open("postgres", dsn)
+	d, err := dao.New(dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	h := handler.New(d)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /hello-world", helloWorldHandler)
 
-	mux.HandleFunc("POST /threads", CreateThreadHandler)
-	mux.HandleFunc("GET /threads", ReadThreadListHandler)
-	mux.HandleFunc("GET /threads/{uuid}", ReadThreadDetailHandler)
+	mux.HandleFunc("POST /threads", h.CreateThreadHandler)
+	mux.HandleFunc("GET /threads", h.ReadThreadListHandler)
+	mux.HandleFunc("GET /threads/{uuid}", h.ReadThreadDetailHandler)
 
-	// mux.HandleFunc("POST /posts", CreatePostHandler)
-	// mux.HandleFunc("GET /posts/{threadUuid}", GetPostListHandler)
-
-	// websocket (test)
-	go hub.Start()
-	mux.HandleFunc("/ws", wsPostHandler)
+	go h.Hub.Start()
+	mux.HandleFunc("/ws", h.PostHandler)
 
 	s := http.Server{
 		Addr:         "0.0.0.0:8080",
