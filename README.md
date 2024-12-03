@@ -4,7 +4,7 @@ myChat の REST API
 
 # Endpoints
 
-## Functions(機能)
+## Basic Functions(機能)
 
 - `POST /threads`: Create a thread. (Need authorized)
 - `GET /threads?offset=&limit=`: Read thread list.
@@ -13,7 +13,7 @@ myChat の REST API
 - WebSocket
 - `/ws`: Send post and Recieve posts.
 
-## Authentication(認証)
+## Authentication(認証): Incomplete
 
 - `GET /signup`
 - `GET /login`
