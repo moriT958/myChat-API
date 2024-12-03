@@ -44,6 +44,10 @@ func main() {
 	mux.HandleFunc("POST /posts", CreatePostHandler)
 	mux.HandleFunc("GET /posts/{threadUuid}", GetPostListHandler)
 
+	// websocket (test)
+	go manager.Start()
+	mux.HandleFunc("/ws", wsPostHandler)
+
 	s := http.Server{
 		Addr:         "0.0.0.0:8080",
 		Handler:      mux,
