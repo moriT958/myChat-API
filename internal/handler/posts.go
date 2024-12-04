@@ -39,7 +39,7 @@ func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		post := model.Post{
-			Uuid:      uuid.NewString(),
+			Uuid:      uuid.New(),
 			Body:      inMsg.Body,
 			ThreadId:  threadId,
 			CreatedAt: time.Now(),
@@ -50,7 +50,7 @@ func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		outMsg := schema.OutMessage{
-			Uuid:       post.Uuid,
+			Uuid:       post.Uuid.String(),
 			Body:       post.Body,
 			ThreadUuid: inMsg.ThreadUuid,
 			CreatedAt:  post.CreatedAt.Format("2006-01-02 15:04:05"),

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"myChat-API/internal/dao"
 	"myChat-API/internal/handler"

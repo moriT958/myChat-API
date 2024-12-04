@@ -23,7 +23,7 @@ func (h *Handler) CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t := model.Thread{
-		Uuid:      uuid.NewString(),
+		Uuid:      uuid.New(),
 		Topic:     reqSchema.Topic,
 		CreatedAt: time.Now(),
 	}
@@ -36,7 +36,7 @@ func (h *Handler) CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// レスポンスの作成処理
 	res := schema.BaseThreadResponse{
-		Uuid:      t.Uuid,
+		Uuid:      t.Uuid.String(),
 		Topic:     t.Topic,
 		CreatedAt: t.CreatedAt.Format("2006-01-02 15:04:05"),
 	}
@@ -96,7 +96,7 @@ func (h *Handler) ReadThreadListHandler(w http.ResponseWriter, r *http.Request) 
 	var res schema.GetThreadListResponse
 	for _, t := range threads {
 		res.Threads = append(res.Threads, schema.BaseThreadResponse{
-			Uuid:      t.Uuid,
+			Uuid:      t.Uuid.String(),
 			Topic:     t.Topic,
 			CreatedAt: t.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
@@ -131,14 +131,14 @@ func (h *Handler) ReadThreadDetailHandler(w http.ResponseWriter, r *http.Request
 
 	// レスポンスの処理
 	res := schema.GetThreadDetailResponse{
-		Uuid:      thread.Uuid,
+		Uuid:      thread.Uuid.String(),
 		Topic:     thread.Topic,
 		CreatedAt: thread.CreatedAt.Format("2006-01-02 15:04:05"),
 		Posts:     make([]schema.PostOnThread, 0),
 	}
 	for _, p := range posts {
 		res.Posts = append(res.Posts, schema.PostOnThread{
-			Uuid:      p.Uuid,
+			Uuid:      p.Uuid.String(),
 			Body:      p.Body,
 			CreatedAt: p.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
