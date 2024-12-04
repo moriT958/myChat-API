@@ -1,6 +1,6 @@
 CREATE TABLE "threads" (
     "id" SERIAL NOT NULL,
-    "uuid" VARCHAR(64) NOT NULL,
+    "uuid" UUID NOT NULL,
     "topic" TEXT NOT NULL,
     "created_at" TIMESTAMP NOT NULL,
     PRIMARY KEY ("id"),
@@ -9,7 +9,7 @@ CREATE TABLE "threads" (
 
 CREATE TABLE "posts" (
     "id" SERIAL,
-    "uuid" VARCHAR(64) NOT NULL,
+    "uuid" UUID NOT NULL,
     "body" TEXT NOT NULL,
     "thread_id" INTEGER NOT NULL,
     "created_at" TIMESTAMP NOT NULL,
