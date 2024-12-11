@@ -10,6 +10,9 @@ myChat の REST API
 - `GET /threads?offset=&limit=`: Read thread list.
 - `GET /threads/{uuid}`: Read a thread detail.
 
+- `GET /users/{username}`: Read a user data.
+- `POST /users`: Create user data.
+
 - WebSocket
 - `/ws`: Send post and Recieve posts.
 
