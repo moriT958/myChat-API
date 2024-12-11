@@ -41,14 +41,15 @@ type CreateUserRequest struct {
 	Password string `json:"password"`
 }
 
-type CreateUserResponce struct {
-	Uuid string `json:"uuid"`
+type CreateUserResponse struct {
+	Uuid     string `json:"uuid"`
+	CreateAt string `json:"created_at"`
 }
 
 type GetUserResponse struct {
-	Uuid     string `json:"uuid"`
-	Username string `json:"username"`
-	CreateAt string `json:"create_at"`
+	Uuid      string `json:"uuid"`
+	Username  string `json:"username"`
+	CreatedAt string `json:"create_at"`
 }
 
 //

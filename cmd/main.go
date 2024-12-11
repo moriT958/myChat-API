@@ -25,6 +25,9 @@ func main() {
 	mux.HandleFunc("GET /threads", h.ReadThreadListHandler)
 	mux.HandleFunc("GET /threads/{uuid}", h.ReadThreadDetailHandler)
 
+	mux.HandleFunc("POST /users", h.CreateUserHandler)
+	mux.HandleFunc("GET /users/{username}", h.GetUserHandler)
+
 	go h.Hub.Start()
 	mux.HandleFunc("/ws", h.PostHandler)
 
