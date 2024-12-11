@@ -15,7 +15,7 @@ func (d *DAO) SaveUser(u model.User) error {
 
 func (d *DAO) GetUserByUsername(username string) (model.User, error) {
 	var u model.User
-	q := `SELECT FROM users WHERE username = $1;`
+	q := `SELECT id, uuid, username, password, created_at FROM users WHERE username = $1;`
 	row := d.DB.QueryRow(q, username)
 	if err := row.Scan(&u.Id, &u.Uuid, &u.Username, &u.Password, &u.CreatedAt); err != nil {
 		return model.User{}, err

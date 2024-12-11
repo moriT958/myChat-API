@@ -35,6 +35,7 @@ func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
 		// Save to DB
 		threadId, err := h.DAO.GetThreadIdByUuid(inMsg.ThreadUuid)
 		if err != nil {
+			log.Println(err)
 			break
 		}
 
