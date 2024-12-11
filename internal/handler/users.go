@@ -9,9 +9,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func (h *Handler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	// リクエストの処理
 	var req schema.CreateUserRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -21,11 +22,11 @@ func (h *Handler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u := model.User{
-		Uuid:      uuid.New(),
-		Username:  req.Username,
-		Password:  req.Password,
-		CreatedAt: time.Now(),
+	u, err := createUser(req.Username, req.Password)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		return
 	}
 
 	if err := h.DAO.SaveUser(u); err != nil {
@@ -47,6 +48,23 @@ func (h *Handler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func createUser(name string, password string) (model.User, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return model.User{}, err
+	}
+	u := model.User{
+		Uuid:      uuid.New(),
+		Username:  name,
+		Password:  string(hash),
+		CreatedAt: time.Now(),
+	}
+	return u, nil
+}
+
+// TODO: create login handler
+// func (h *Handler) Login(w http.ResponseWriter, r *http.Request)
 
 func (h *Handler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	// リクエストの処理

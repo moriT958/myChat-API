@@ -25,8 +25,12 @@ func main() {
 	mux.HandleFunc("GET /threads", h.ReadThreadListHandler)
 	mux.HandleFunc("GET /threads/{uuid}", h.ReadThreadDetailHandler)
 
-	mux.HandleFunc("POST /users", h.CreateUserHandler)
 	mux.HandleFunc("GET /users/{username}", h.GetUserHandler)
+
+	// TODO: create authentication handler
+	// mux.HandleFunc("GET /login", h.LoginHandler)
+
+	mux.HandleFunc("POST /signup", h.SignupHandler)
 
 	go h.Hub.Start()
 	mux.HandleFunc("/ws", h.PostHandler)
