@@ -8,7 +8,7 @@ type BaseThreadResponse struct {
 	Uuid      string `json:"uuid"`
 	Topic     string `json:"topic"`
 	CreatedAt string `json:"createdAt"`
-	Username  string `json:"username"`
+	UserId    int    `json:"user_id"`
 }
 
 type CreateThreadRequest struct {
@@ -44,6 +44,11 @@ type CreateUserRequest struct {
 type CreateUserResponse struct {
 	Uuid     string `json:"uuid"`
 	CreateAt string `json:"created_at"`
+}
+
+type GetTokenResponse struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
 }
 
 type GetUserResponse struct {

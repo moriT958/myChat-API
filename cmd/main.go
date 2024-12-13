@@ -21,17 +21,19 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /threads", h.CreateThreadHandler)
+	// thread functions
+	mux.Handle("POST /threads", h.AuthMiddleware(h.CreateThreadHandler))
 	mux.HandleFunc("GET /threads", h.ReadThreadListHandler)
 	mux.HandleFunc("GET /threads/{uuid}", h.ReadThreadDetailHandler)
 
+	// get user info function
 	mux.HandleFunc("GET /users/{username}", h.GetUserHandler)
 
-	// TODO: create authentication handler
-	// mux.HandleFunc("GET /login", h.LoginHandler)
-
+	// auth functions
 	mux.HandleFunc("POST /signup", h.SignupHandler)
+	mux.HandleFunc("POST /login", h.LoginHandler)
 
+	// posting functions
 	go h.Hub.Start()
 	mux.HandleFunc("/ws", h.PostHandler)
 

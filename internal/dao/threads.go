@@ -3,9 +3,9 @@ package dao
 import "myChat-API/internal/model"
 
 func (d *DAO) SaveThread(t model.Thread) error {
-	q := `INSERT INTO threads (uuid, topic, created_at) VALUES ($1, $2, $3);`
+	q := `INSERT INTO threads (uuid, topic, created_at, user_id) VALUES ($1, $2, $3, $4);`
 
-	_, err := d.DB.Exec(q, t.Uuid, t.Topic, t.CreatedAt)
+	_, err := d.DB.Exec(q, t.Uuid, t.Topic, t.CreatedAt, t.UserId)
 	if err != nil {
 		return err
 	}
