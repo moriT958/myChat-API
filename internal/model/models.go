@@ -19,6 +19,7 @@ type Thread struct {
 	Uuid      uuid.UUID
 	Topic     string
 	CreatedAt time.Time
+	UserId    int
 }
 
 type Post struct {

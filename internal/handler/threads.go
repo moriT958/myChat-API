@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"log"
+	"myChat-API/internal/common"
 	"myChat-API/internal/model"
 	"myChat-API/internal/schema"
 	"net/http"
@@ -22,10 +23,19 @@ func (h *Handler) CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	username := common.GetUsername(r.Context())
+	u, err := h.DAO.GetUserByUsername(username)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Failed to get User data.", http.StatusInternalServerError)
+		return
+	}
+
 	t := model.Thread{
 		Uuid:      uuid.New(),
 		Topic:     reqSchema.Topic,
 		CreatedAt: time.Now(),
+		UserId:    u.Id,
 	}
 
 	if err := h.DAO.SaveThread(t); err != nil {
@@ -39,6 +49,7 @@ func (h *Handler) CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
 		Uuid:      t.Uuid.String(),
 		Topic:     t.Topic,
 		CreatedAt: t.CreatedAt.Format("2006-01-02 15:04:05"),
+		UserId:    t.UserId,
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf8")
 	w.WriteHeader(http.StatusCreated)
