@@ -1,235 +1,235 @@
-openapi: "3.0.3"
+# openapi: "3.0.3"
 
-info:
-  title: myChat-API
-  version: 1.0.0
+# info:
+#   title: myChat-API
+#   version: 1.0.0
 
-paths:
-  /threads:
-    post:
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                topic:
-                  type: string
-                  example: "Sample Topic"
-      responses:
-        201:
-          description: Created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  uuid:
-                    type: string
-                    example: "abcd"
-                  topic:
-                    type: string
-                    example: "Sample Topic"
-                  createdAt:
-                    type: string
-                    example: "2006-01-02 15:04:05"
-    get:
-      parameters:
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            minimum: 0
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  threads:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        uuid:
-                          type: string
-                        topic:
-                          type: string
-                        createdAt:
-                          type: string
-                example:
-                  {
-                    "threads":
-                      [
-                        {
-                          "uuid": "abcd",
-                          "topic": "Sample Topic",
-                          "createdAt": "2006-01-02",
-                        },
-                        {
-                          "uuid": "efgh",
-                          "topic": "Sample Topic 2",
-                          "createdAt": "2006-01-02",
-                        },
-                      ],
-                  }
+# paths:
+#   /threads:
+#     post:
+#       requestBody:
+#         required: true
+#         content:
+#           application/json:
+#             schema:
+#               type: object
+#               properties:
+#                 topic:
+#                   type: string
+#                   example: "Sample Topic"
+#       responses:
+#         201:
+#           description: Created
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   uuid:
+#                     type: string
+#                     example: "abcd"
+#                   topic:
+#                     type: string
+#                     example: "Sample Topic"
+#                   createdAt:
+#                     type: string
+#                     example: "2006-01-02 15:04:05"
+#     get:
+#       parameters:
+#         - name: offset
+#           in: query
+#           schema:
+#             type: integer
+#             minimum: 0
+#         - name: limit
+#           in: query
+#           schema:
+#             type: integer
+#             minimum: 1
+#       responses:
+#         200:
+#           description: OK
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   threads:
+#                     type: array
+#                     items:
+#                       type: object
+#                       properties:
+#                         uuid:
+#                           type: string
+#                         topic:
+#                           type: string
+#                         createdAt:
+#                           type: string
+#                 example:
+#                   {
+#                     "threads":
+#                       [
+#                         {
+#                           "uuid": "abcd",
+#                           "topic": "Sample Topic",
+#                           "createdAt": "2006-01-02",
+#                         },
+#                         {
+#                           "uuid": "efgh",
+#                           "topic": "Sample Topic 2",
+#                           "createdAt": "2006-01-02",
+#                         },
+#                       ],
+#                   }
 
-  /threads/{uuid}:
-    get:
-      parameters:
-        - name: uuid
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  uuid:
-                    type: string
-                    example: "abcd"
-                  topic:
-                    type: string
-                    example: "Sample Topic"
-                  createdAt:
-                    type: string
-                    example: "2006-01-02"
-                  posts:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        uuid:
-                          type: string
-                        body:
-                          type: string
-                        createdAt:
-                          type: string
-                example:
-                  {
-                    "uuid": "abcd",
-                    "topic": "Sample Topic",
-                    "createdAt": "2006-01-02",
-                    "posts":
-                      [
-                        {
-                          "uuid": "1245",
-                          "body": "Nice to meet you!",
-                          "createdAt": "2006-01-02",
-                        },
-                        {
-                          "uuid": "56788",
-                          "body": "Hello!!",
-                          "createdAt": "2006-01-02",
-                        },
-                      ],
-                  }
-  /posts:
-    post:
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                body:
-                  type: string
-                  example: "Sample Topic"
-                threadUuid:
-                  type: string
-                  example: "abcd"
-      responses:
-        201:
-          description: Created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  uuid:
-                    type: string
-                  body:
-                    type: string
-                  threadUuid:
-                    type: string
-                  createdAt:
-                    type: string
-                example:
-                  {
-                    "uuid": "1234",
-                    "body": "Hello!",
-                    "threadUuid": abcd,
-                    "createdAt": "2006-01-02",
-                  }
+#   /threads/{uuid}:
+#     get:
+#       parameters:
+#         - name: uuid
+#           in: path
+#           schema:
+#             type: string
+#           required: true
+#       responses:
+#         200:
+#           description: OK
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   uuid:
+#                     type: string
+#                     example: "abcd"
+#                   topic:
+#                     type: string
+#                     example: "Sample Topic"
+#                   createdAt:
+#                     type: string
+#                     example: "2006-01-02"
+#                   posts:
+#                     type: array
+#                     items:
+#                       type: object
+#                       properties:
+#                         uuid:
+#                           type: string
+#                         body:
+#                           type: string
+#                         createdAt:
+#                           type: string
+#                 example:
+#                   {
+#                     "uuid": "abcd",
+#                     "topic": "Sample Topic",
+#                     "createdAt": "2006-01-02",
+#                     "posts":
+#                       [
+#                         {
+#                           "uuid": "1245",
+#                           "body": "Nice to meet you!",
+#                           "createdAt": "2006-01-02",
+#                         },
+#                         {
+#                           "uuid": "56788",
+#                           "body": "Hello!!",
+#                           "createdAt": "2006-01-02",
+#                         },
+#                       ],
+#                   }
+#   /posts:
+#     post:
+#       requestBody:
+#         required: true
+#         content:
+#           application/json:
+#             schema:
+#               type: object
+#               properties:
+#                 body:
+#                   type: string
+#                   example: "Sample Topic"
+#                 threadUuid:
+#                   type: string
+#                   example: "abcd"
+#       responses:
+#         201:
+#           description: Created
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   uuid:
+#                     type: string
+#                   body:
+#                     type: string
+#                   threadUuid:
+#                     type: string
+#                   createdAt:
+#                     type: string
+#                 example:
+#                   {
+#                     "uuid": "1234",
+#                     "body": "Hello!",
+#                     "threadUuid": abcd,
+#                     "createdAt": "2006-01-02",
+#                   }
 
-  /posts/{threadUuid}:
-    get:
-      parameters:
-        - name: threadUuid
-          in: path
-          schema:
-            type: string
-          required: true
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            minimum: 0
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  posts:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        uuid:
-                          type: string
-                        body:
-                          type: string
-                        threadUuid:
-                          type: string
-                        createdAt:
-                          type: string
-                example:
-                  {
-                    "posts":
-                      [
-                        {
-                          "uuid": "1234",
-                          "body": "Hello!!!",
-                          "threadUuid": "abcd",
-                          "createdAt": "2006-01-02",
-                        },
-                        {
-                          "uuid": "5678",
-                          "body": "Hi!",
-                          "threadUuid": "abcd",
-                          "createdAt": "2006-01-02",
-                        },
-                      ],
-                  }
+#   /posts/{threadUuid}:
+#     get:
+#       parameters:
+#         - name: threadUuid
+#           in: path
+#           schema:
+#             type: string
+#           required: true
+#         - name: offset
+#           in: query
+#           schema:
+#             type: integer
+#             minimum: 0
+#         - name: limit
+#           in: query
+#           schema:
+#             type: integer
+#             minimum: 1
+#       responses:
+#         200:
+#           description: OK
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   posts:
+#                     type: array
+#                     items:
+#                       type: object
+#                       properties:
+#                         uuid:
+#                           type: string
+#                         body:
+#                           type: string
+#                         threadUuid:
+#                           type: string
+#                         createdAt:
+#                           type: string
+#                 example:
+#                   {
+#                     "posts":
+#                       [
+#                         {
+#                           "uuid": "1234",
+#                           "body": "Hello!!!",
+#                           "threadUuid": "abcd",
+#                           "createdAt": "2006-01-02",
+#                         },
+#                         {
+#                           "uuid": "5678",
+#                           "body": "Hi!",
+#                           "threadUuid": "abcd",
+#                           "createdAt": "2006-01-02",
+#                         },
+#                       ],
+#                   }

@@ -3,7 +3,6 @@ package handler
 import (
 	"log"
 	"myChat-API/internal/model"
-	"myChat-API/internal/schema"
 	"net/http"
 	"time"
 
@@ -24,7 +23,7 @@ func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	for {
-		var inMsg schema.InMessage
+		var inMsg InMessage
 		err := conn.ReadJSON(&inMsg)
 		if err != nil {
 			log.Println(err, "Marker")
@@ -50,7 +49,7 @@ func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		outMsg := schema.OutMessage{
+		outMsg := OutMessage{
 			Uuid:       post.Uuid.String(),
 			Body:       post.Body,
 			ThreadUuid: inMsg.ThreadUuid,

@@ -7,7 +7,16 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Failed to load .env file.")
+	}
+}
 
 func main() {
 

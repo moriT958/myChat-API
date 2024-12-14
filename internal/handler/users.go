@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"log"
-	"myChat-API/internal/schema"
 	"net/http"
 )
 
@@ -19,7 +18,7 @@ func (h *Handler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// レスポンスの処理
-	res := schema.GetUserResponse{
+	res := GetUserResponse{
 		Uuid:      user.Uuid.String(),
 		Username:  user.Username,
 		CreatedAt: user.CreatedAt.Format("2006-01-02 15:04:05"),
