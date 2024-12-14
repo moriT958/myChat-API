@@ -3,9 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"log"
-	"myChat-API/internal/common"
 	"myChat-API/internal/model"
-	"myChat-API/internal/schema"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,7 +13,7 @@ import (
 
 func (h *Handler) CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
 	// リクエストの処理
-	var reqSchema schema.CreateThreadRequest
+	var reqSchema CreateThreadRequest
 	err := json.NewDecoder(r.Body).Decode(&reqSchema)
 	if err != nil || reqSchema.Topic == "" {
 		log.Println(err)
@@ -23,7 +21,7 @@ func (h *Handler) CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := common.GetUsername(r.Context())
+	username := GetUsername(r.Context())
 	u, err := h.DAO.GetUserByUsername(username)
 	if err != nil {
 		log.Println(err)
@@ -45,7 +43,7 @@ func (h *Handler) CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// レスポンスの作成処理
-	res := schema.BaseThreadResponse{
+	res := BaseThreadResponse{
 		Uuid:      t.Uuid.String(),
 		Topic:     t.Topic,
 		CreatedAt: t.CreatedAt.Format("2006-01-02 15:04:05"),
@@ -104,9 +102,9 @@ func (h *Handler) ReadThreadListHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// レスポンスの作成処理
-	var res schema.GetThreadListResponse
+	var res GetThreadListResponse
 	for _, t := range threads {
-		res.Threads = append(res.Threads, schema.BaseThreadResponse{
+		res.Threads = append(res.Threads, BaseThreadResponse{
 			Uuid:      t.Uuid.String(),
 			Topic:     t.Topic,
 			CreatedAt: t.CreatedAt.Format("2006-01-02 15:04:05"),
@@ -141,14 +139,14 @@ func (h *Handler) ReadThreadDetailHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	// レスポンスの処理
-	res := schema.GetThreadDetailResponse{
+	res := GetThreadDetailResponse{
 		Uuid:      thread.Uuid.String(),
 		Topic:     thread.Topic,
 		CreatedAt: thread.CreatedAt.Format("2006-01-02 15:04:05"),
-		Posts:     make([]schema.PostOnThread, 0),
+		Posts:     make([]PostOnThread, 0),
 	}
 	for _, p := range posts {
-		res.Posts = append(res.Posts, schema.PostOnThread{
+		res.Posts = append(res.Posts, PostOnThread{
 			Uuid:      p.Uuid.String(),
 			Body:      p.Body,
 			CreatedAt: p.CreatedAt.Format("2006-01-02 15:04:05"),

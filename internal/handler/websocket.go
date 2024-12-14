@@ -2,7 +2,6 @@ package handler
 
 import (
 	"log"
-	"myChat-API/internal/schema"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -14,7 +13,7 @@ type Client struct {
 
 type Hub struct {
 	clients    map[*Client]bool
-	broadcast  chan schema.OutMessage
+	broadcast  chan OutMessage
 	register   chan *Client
 	unregister chan *Client
 	mu         sync.RWMutex
@@ -23,7 +22,7 @@ type Hub struct {
 func NewHub() *Hub {
 	return &Hub{
 		clients:    make(map[*Client]bool),
-		broadcast:  make(chan schema.OutMessage),
+		broadcast:  make(chan OutMessage),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 	}

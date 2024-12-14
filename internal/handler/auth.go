@@ -5,10 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"myChat-API/internal/common"
 	"myChat-API/internal/model"
-	"myChat-API/internal/schema"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -16,6 +15,8 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var secretKey = os.Getenv("SECRET_KEY")
 
 func trimHeaderBearer(tokenStr string) (string, error) {
 	headers := strings.Split(tokenStr, " ")
@@ -51,7 +52,7 @@ func validateJWT(r *http.Request) (map[string]interface{}, error) {
 		}
 
 		// hmacSampleSecret is a []byte containing your secret, e.g. []bytemy_secret_key")
-		return []byte("sample_secret_key"), nil
+		return []byte(secretKey), nil
 	})
 	if err != nil {
 		log.Printf("Failed to parse token: %+v\n", err)
@@ -74,7 +75,7 @@ func generateJWT(username string) (string, error) {
 	})
 
 	// Sign and get the complete encoded token as a string using the secret
-	tokenStr, err := token.SignedString([]byte("sample_secret_key"))
+	tokenStr, err := token.SignedString([]byte(secretKey))
 	if err != nil {
 		return "", err
 	}
@@ -83,7 +84,7 @@ func generateJWT(username string) (string, error) {
 }
 
 func (h *Handler) SignupHandler(w http.ResponseWriter, r *http.Request) {
-	var req schema.CreateUserRequest
+	var req CreateUserRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil || req.Username == "" || req.Password == "" {
 		log.Println(err)
@@ -104,7 +105,7 @@ func (h *Handler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := schema.CreateUserResponse{
+	res := CreateUserResponse{
 		Uuid:     u.Uuid.String(),
 		CreateAt: u.CreatedAt.Format("2006-01-02 15:04:05"),
 	}
@@ -156,7 +157,7 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token, err := generateJWT(u.Username)
-	res := schema.GetTokenResponse{
+	res := GetTokenResponse{
 		AccessToken: token,
 		TokenType:   "Bearer",
 	}
@@ -182,7 +183,7 @@ func (h *Handler) AuthMiddleware(next http.HandlerFunc) http.Handler {
 
 		// uuid is interface{} type.
 		// so, uuid needs to be asserted.
-		r = common.SetUsername(r, username.(string))
+		r = SetUsername(r, username.(string))
 
 		next.ServeHTTP(w, r)
 	})
