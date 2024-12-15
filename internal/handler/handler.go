@@ -1,19 +1,20 @@
 package handler
 
 import (
-	"myChat-API/internal/dao"
+	"myChat-API/internal/service"
 	"net/http"
 
 	"github.com/gorilla/websocket"
 )
 
 type Handler struct {
-	DAO *dao.DAO
+	As  *service.AuthService
+	Ts  *service.ThreadService
 	Hub *Hub
 	websocket.Upgrader
 }
 
-func New(d *dao.DAO) *Handler {
+func New(as *service.AuthService, ts *service.ThreadService) *Handler {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -23,7 +24,8 @@ func New(d *dao.DAO) *Handler {
 	hub := NewHub()
 
 	return &Handler{
-		DAO:      d,
+		As:       as,
+		Ts:       ts,
 		Hub:      hub,
 		Upgrader: upgrader,
 	}

@@ -10,6 +10,7 @@ import (
 )
 
 func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	conn, err := h.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
@@ -32,19 +33,26 @@ func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Recieved: %+v\n", inMsg)
 
 		// Save to DB
-		threadId, err := h.DAO.GetThreadIdByUuid(inMsg.ThreadUuid)
+		threadUuid, err := uuid.Parse(inMsg.ThreadUuid)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Failed to parse uuid", http.StatusBadRequest)
+			return
+		}
+		threadId, err := h.Queries.GetThreadIdByUuid(ctx, threadUuid)
 		if err != nil {
 			log.Println(err)
 			break
 		}
+		t, err := h.
 
 		post := domain.Post{
 			Uuid:      uuid.New(),
 			Body:      inMsg.Body,
-			ThreadId:  threadId,
+			ThreadId:  int(threadId),
 			CreatedAt: time.Now(),
 		}
-		if err := h.DAO.SavePost(post); err != nil {
+		if err := h.Queries.CreatePost(ctx, post); err != nil {
 			log.Println(err)
 			break
 		}

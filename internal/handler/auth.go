@@ -5,18 +5,59 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"myChat-API/internal/domain"
+	"myChat-API/internal/service"
 	"net/http"
-	"os"
 	"strings"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
-var secretKey = os.Getenv("SECRET_KEY")
+func (h *Handler) SignupHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req CreateUserRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil || req.Username == "" || req.Password == "" {
+		log.Println(err)
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.As.Signup(ctx, req.Username, req.Password); err != nil {
+		log.Println(err)
+		http.Error(w, "Failed to signup.", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+
+	token, err := h.As.Login(ctx, username, password)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Failed to login.", http.StatusInternalServerError)
+		return
+	}
+
+	res := GetTokenResponse{
+		AccessToken: token,
+		TokenType:   "Bearer",
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		log.Println(err)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}
 
 func trimHeaderBearer(tokenStr string) (string, error) {
 	headers := strings.Split(tokenStr, " ")
@@ -52,10 +93,9 @@ func validateJWT(r *http.Request) (map[string]interface{}, error) {
 		}
 
 		// hmacSampleSecret is a []byte containing your secret, e.g. []bytemy_secret_key")
-		return []byte(secretKey), nil
+		return []byte(service.SecretKey), nil
 	})
 	if err != nil {
-		log.Printf("Failed to parse token: %+v\n", err)
 		return nil, fmt.Errorf("Token parse error: %w", err)
 	}
 
@@ -64,110 +104,6 @@ func validateJWT(r *http.Request) (map[string]interface{}, error) {
 	}
 
 	return nil, err
-
-}
-
-func generateJWT(username string) (string, error) {
-	// Create a new token object, specifying signing method and the claims
-	// you would like it to contain.
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"username": username,
-	})
-
-	// Sign and get the complete encoded token as a string using the secret
-	tokenStr, err := token.SignedString([]byte(secretKey))
-	if err != nil {
-		return "", err
-	}
-
-	return tokenStr, nil
-}
-
-func (h *Handler) SignupHandler(w http.ResponseWriter, r *http.Request) {
-	var req CreateUserRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil || req.Username == "" || req.Password == "" {
-		log.Println(err)
-		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
-		return
-	}
-
-	u, err := createUser(req.Username, req.Password)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Failed to create user", http.StatusInternalServerError)
-		return
-	}
-
-	if err := h.DAO.SaveUser(u); err != nil {
-		log.Println(err)
-		http.Error(w, "Failed to Save User", http.StatusInternalServerError)
-		return
-	}
-
-	res := CreateUserResponse{
-		Uuid:     u.Uuid.String(),
-		CreateAt: u.CreatedAt.Format("2006-01-02 15:04:05"),
-	}
-	w.Header().Set("Content-Type", "application/json; charset=utf8")
-	w.WriteHeader(http.StatusCreated)
-
-	if err := json.NewEncoder(w).Encode(&res); err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-		return
-	}
-}
-
-func createUser(name string, password string) (domain.User, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return domain.User{}, err
-	}
-	u := domain.User{
-		Uuid:      uuid.New(),
-		Username:  name,
-		Password:  string(hash),
-		CreatedAt: time.Now(),
-	}
-	return u, nil
-}
-
-func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	username := r.FormValue("username")
-	password := r.FormValue("password")
-
-	hashedPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Failed to generate password hash", http.StatusInternalServerError)
-		return
-	}
-
-	u, err := h.DAO.GetUserByUsername(username)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "User doesn't exists.", http.StatusBadRequest)
-		return
-	}
-
-	if err := bcrypt.CompareHashAndPassword(hashedPass, []byte(password)); err != nil {
-		http.Error(w, "Invalid password. Auth failed.", http.StatusUnauthorized)
-		log.Println(err)
-		return
-	}
-
-	token, err := generateJWT(u.Username)
-	res := GetTokenResponse{
-		AccessToken: token,
-		TokenType:   "Bearer",
-	}
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(res); err != nil {
-		log.Println(err)
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-		return
-	}
 }
 
 func (h *Handler) AuthMiddleware(next http.HandlerFunc) http.Handler {

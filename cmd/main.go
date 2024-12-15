@@ -11,6 +11,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var SecretKey = os.Getenv("SECRET_KEY")
+
 func init() {
 	err := godotenv.Load()
 	if err != nil {
