@@ -12,8 +12,11 @@ type BaseThreadResponse struct {
 }
 
 type CreateThreadRequest struct {
-	Topic    string `json:"topic"`
-	Username string `json:"username"`
+	Topic string `json:"topic"`
+}
+
+type CreateThreadResponses struct {
+	Uuid string `json:"uuid"`
 }
 
 type GetThreadListResponse struct {
@@ -39,11 +42,6 @@ type PostOnThread struct {
 type CreateUserRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-}
-
-type CreateUserResponse struct {
-	Uuid     string `json:"uuid"`
-	CreateAt string `json:"created_at"`
 }
 
 type GetTokenResponse struct {

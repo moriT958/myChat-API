@@ -12,6 +12,8 @@ import (
 )
 
 func (h *Handler) CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	// リクエストの処理
 	var reqSchema CreateThreadRequest
 	err := json.NewDecoder(r.Body).Decode(&reqSchema)
@@ -21,35 +23,20 @@ func (h *Handler) CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Create Thread.
 	username := GetUsername(r.Context())
-	u, err := h.DAO.GetUserByUsername(username)
+	threadUuid, err := h.Ts.CreateThread(ctx, reqSchema.Topic, username)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Failed to get User data.", http.StatusInternalServerError)
-		return
-	}
-
-	t := domain.Thread{
-		Uuid:      uuid.New(),
-		Topic:     reqSchema.Topic,
-		CreatedAt: time.Now(),
-		UserId:    u.Id,
-	}
-
-	if err := h.DAO.SaveThread(t); err != nil {
-		log.Println(err)
-		http.Error(w, "Failed to Save Thread", http.StatusInternalServerError)
+		http.Error(w, "Failed to your user info.", http.StatusInternalServerError)
 		return
 	}
 
 	// レスポンスの作成処理
-	res := BaseThreadResponse{
-		Uuid:      t.Uuid.String(),
-		Topic:     t.Topic,
-		CreatedAt: t.CreatedAt.Format("2006-01-02 15:04:05"),
-		UserId:    t.UserId,
+	res := CreateThreadResponses{
+		Uuid: threadUuid,
 	}
-	w.Header().Set("Content-Type", "application/json; charset=utf8")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
@@ -86,6 +73,7 @@ func getQueryParams(r *http.Request) (map[string]int, error) {
 }
 
 func (h *Handler) ReadThreadListHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 
 	q, err := getQueryParams(r)
 	if err != nil {
@@ -94,20 +82,27 @@ func (h *Handler) ReadThreadListHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	threads, err := h.DAO.GetThreads(q["limit"], q["offset"])
+	threads, err := h.Ts.ReadAllThreads(ctx, q["limit"], q["offset"])
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Failed Get threads", http.StatusInternalServerError)
+		http.Error(w, "Failed to read threads.", http.StatusInternalServerError)
 		return
 	}
 
 	// レスポンスの作成処理
 	var res GetThreadListResponse
 	for _, t := range threads {
+		createdAt, err := h.Ts.Tr.GetCreatedAt(ctx, t.Uuid)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Failed to get createdAt.", http.StatusInternalServerError)
+			return
+		}
 		res.Threads = append(res.Threads, BaseThreadResponse{
-			Uuid:      t.Uuid.String(),
+			Uuid:      t.Uuid,
 			Topic:     t.Topic,
-			CreatedAt: t.CreatedAt.Format("2006-01-02 15:04:05"),
+			CreatedAt: createdAt,
+			UserId:    t.UserId,
 		})
 	}
 
@@ -121,33 +116,40 @@ func (h *Handler) ReadThreadListHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *Handler) ReadThreadDetailHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	// リクエストの処理
-	var uuid string = r.PathValue("uuid")
+	var threadUuid string = r.PathValue("uuid")
 
-	thread, err := h.DAO.GetThreadByUuid(uuid)
+	thread, posts, err := h.Ts.ReadThreadDetail(ctx, threadUuid)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Failed to get thread", http.StatusInternalServerError)
-		return
-	}
-
-	posts, err := h.DAO.GetPostSByThreadId(thread.Id)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Failed to get posts", http.StatusInternalServerError)
+		http.Error(w, "Failed to read thread.", http.StatusInternalServerError)
 		return
 	}
 
 	// レスポンスの処理
+	createdAt, err := h.Ts.Tr.GetCreatedAt(ctx, thread.Uuid)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Failed to get createdAt.", http.StatusInternalServerError)
+		return
+	}
 	res := GetThreadDetailResponse{
-		Uuid:      thread.Uuid.String(),
+		Uuid:      thread.Uuid,
 		Topic:     thread.Topic,
-		CreatedAt: thread.CreatedAt.Format("2006-01-02 15:04:05"),
-		Posts:     make([]PostOnThread, 0),
+		CreatedAt: createdAt,
+		Posts:     make([]PostOnThread, len(posts)),
 	}
 	for _, p := range posts {
+		createdAt, err := h.Ps.GetCreatedAt(ctx, thread.Uuid)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Failed to get createdAt.", http.StatusInternalServerError)
+			return
+		}
 		res.Posts = append(res.Posts, PostOnThread{
-			Uuid:      p.Uuid.String(),
+			Uuid:      p.Uuid,
 			Body:      p.Body,
 			CreatedAt: p.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
