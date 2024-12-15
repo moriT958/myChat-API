@@ -2,7 +2,7 @@ package handler
 
 import (
 	"log"
-	"myChat-API/internal/model"
+	"myChat-API/internal/domain"
 	"net/http"
 	"time"
 
@@ -38,7 +38,7 @@ func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		post := model.Post{
+		post := domain.Post{
 			Uuid:      uuid.New(),
 			Body:      inMsg.Body,
 			ThreadId:  threadId,
