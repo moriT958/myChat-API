@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"myChat-API/internal/model"
+	"myChat-API/internal/domain"
 	"net/http"
 	"os"
 	"strings"
@@ -118,12 +118,12 @@ func (h *Handler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func createUser(name string, password string) (model.User, error) {
+func createUser(name string, password string) (domain.User, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return model.User{}, err
+		return domain.User{}, err
 	}
-	u := model.User{
+	u := domain.User{
 		Uuid:      uuid.New(),
 		Username:  name,
 		Password:  string(hash),

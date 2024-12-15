@@ -1,8 +1,8 @@
 package dao
 
-import "myChat-API/internal/model"
+import "myChat-API/internal/domain"
 
-func (d *DAO) SaveThread(t model.Thread) error {
+func (d *DAO) SaveThread(t domain.Thread) error {
 	q := `INSERT INTO threads (uuid, topic, created_at, user_id) VALUES ($1, $2, $3, $4);`
 
 	_, err := d.DB.Exec(q, t.Uuid, t.Topic, t.CreatedAt, t.UserId)
@@ -13,7 +13,7 @@ func (d *DAO) SaveThread(t model.Thread) error {
 	return nil
 }
 
-func (d *DAO) GetThreads(limit int, offset int) ([]model.Thread, error) {
+func (d *DAO) GetThreads(limit int, offset int) ([]domain.Thread, error) {
 
 	sql := `SELECT uuid, topic, created_at FROM threads LIMIT $1 OFFSET $2;`
 	rows, err := d.DB.Query(sql, limit, offset)
@@ -22,9 +22,9 @@ func (d *DAO) GetThreads(limit int, offset int) ([]model.Thread, error) {
 	}
 	defer rows.Close()
 
-	res := make([]model.Thread, 0)
+	res := make([]domain.Thread, 0)
 	for rows.Next() {
-		var t model.Thread
+		var t domain.Thread
 		if err := rows.Scan(&t.Uuid, &t.Topic, &t.CreatedAt); err != nil {
 			return nil, err
 		}
@@ -34,12 +34,12 @@ func (d *DAO) GetThreads(limit int, offset int) ([]model.Thread, error) {
 	return res, nil
 }
 
-func (d *DAO) GetThreadByUuid(uuid string) (model.Thread, error) {
-	var t model.Thread
+func (d *DAO) GetThreadByUuid(uuid string) (domain.Thread, error) {
+	var t domain.Thread
 	q := `SELECT id, uuid, topic, created_at FROM threads WHERE uuid = $1;`
 	row := d.DB.QueryRow(q, uuid)
 	if err := row.Scan(&t.Id, &t.Uuid, &t.Topic, &t.CreatedAt); err != nil {
-		return model.Thread{}, err
+		return domain.Thread{}, err
 	}
 	return t, nil
 }

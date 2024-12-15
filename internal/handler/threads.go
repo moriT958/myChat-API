@@ -3,7 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"log"
-	"myChat-API/internal/model"
+	"myChat-API/internal/domain"
 	"net/http"
 	"strconv"
 	"time"
@@ -29,7 +29,7 @@ func (h *Handler) CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := model.Thread{
+	t := domain.Thread{
 		Uuid:      uuid.New(),
 		Topic:     reqSchema.Topic,
 		CreatedAt: time.Now(),
