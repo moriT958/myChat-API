@@ -7,52 +7,60 @@ package query
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 const createPost = `-- name: CreatePost :exec
-INSERT INTO posts (uuid, body, thread_id, created_at, user_id) VALUES ($1, $2, $3, $4, $5)
+INSERT INTO posts (uuid, body, created_at, thread_id, user_id) VALUES (
+    $1, $2, $3,
+    (SELECT threads.id FROM threads WHERE threads.uuid = $4),
+    (SELECT users.id FROM users WHERE users.uuid = $5)
+)
 `
 
 type CreatePostParams struct {
 	Uuid      uuid.UUID
 	Body      string
-	ThreadID  int32
 	CreatedAt time.Time
-	UserID    int32
+	Uuid_2    uuid.UUID
+	Uuid_3    uuid.UUID
 }
 
+// -------- Queries for Post models ----------
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) error {
 	_, err := q.db.ExecContext(ctx, createPost,
 		arg.Uuid,
 		arg.Body,
-		arg.ThreadID,
 		arg.CreatedAt,
-		arg.UserID,
+		arg.Uuid_2,
+		arg.Uuid_3,
 	)
 	return err
 }
 
 const createThread = `-- name: CreateThread :exec
-INSERT INTO threads (uuid, topic, created_at, user_id) VALUES ($1, $2, $3, $4)
+INSERT INTO threads (uuid, topic, created_at, user_id) VALUES (
+    $1, $2, $3,
+    (SELECT users.id FROM users WHERE users.uuid = $4)
+)
 `
 
 type CreateThreadParams struct {
 	Uuid      uuid.UUID
 	Topic     string
 	CreatedAt time.Time
-	UserID    int32
+	Uuid_2    uuid.UUID
 }
 
+// -------- Queries for Thread models ----------
 func (q *Queries) CreateThread(ctx context.Context, arg CreateThreadParams) error {
 	_, err := q.db.ExecContext(ctx, createThread,
 		arg.Uuid,
 		arg.Topic,
 		arg.CreatedAt,
-		arg.UserID,
+		arg.Uuid_2,
 	)
 	return err
 }
@@ -68,6 +76,7 @@ type CreateUserParams struct {
 	CreatedAt time.Time
 }
 
+// -------- Queries for User models ----------
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 	_, err := q.db.ExecContext(ctx, createUser,
 		arg.Uuid,
@@ -79,7 +88,17 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 }
 
 const getAllThreads = `-- name: GetAllThreads :many
-SELECT id, uuid, topic, created_at, user_id FROM threads LIMIT $1 OFFSET $2
+SELECT 
+    threads.uuid AS thread_uuid,
+    threads.topic,
+    threads.created_at AS thread_created_at,
+    users.uuid AS user_uuid
+FROM
+    threads
+JOIN
+    users ON threads.user_id = users.id
+LIMIT $1
+OFFSET $2
 `
 
 type GetAllThreadsParams struct {
@@ -87,21 +106,27 @@ type GetAllThreadsParams struct {
 	Offset int32
 }
 
-func (q *Queries) GetAllThreads(ctx context.Context, arg GetAllThreadsParams) ([]Thread, error) {
+type GetAllThreadsRow struct {
+	ThreadUuid      uuid.UUID
+	Topic           string
+	ThreadCreatedAt time.Time
+	UserUuid        uuid.UUID
+}
+
+func (q *Queries) GetAllThreads(ctx context.Context, arg GetAllThreadsParams) ([]GetAllThreadsRow, error) {
 	rows, err := q.db.QueryContext(ctx, getAllThreads, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Thread
+	var items []GetAllThreadsRow
 	for rows.Next() {
-		var i Thread
+		var i GetAllThreadsRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.Uuid,
+			&i.ThreadUuid,
 			&i.Topic,
-			&i.CreatedAt,
-			&i.UserID,
+			&i.ThreadCreatedAt,
+			&i.UserUuid,
 		); err != nil {
 			return nil, err
 		}
@@ -116,44 +141,44 @@ func (q *Queries) GetAllThreads(ctx context.Context, arg GetAllThreadsParams) ([
 	return items, nil
 }
 
-const getPostById = `-- name: GetPostById :one
-SELECT id, uuid, body, thread_id, created_at, user_id FROM posts WHERE id = $1
+const getPostByThreadUuid = `-- name: GetPostByThreadUuid :many
+SELECT 
+    posts.uuid AS post_uuid,
+    posts.body,
+    posts.created_at AS post_created_at,
+    threads.uuid AS thread_uuid,
+    users.uuid AS user_uuid
+FROM 
+    posts 
+JOIN threads ON posts.thread_id = threads.id
+JOIN users ON posts.user_id = users.id
+WHERE
+    threads.uuid = $1
 `
 
-func (q *Queries) GetPostById(ctx context.Context, id sql.NullInt32) (Post, error) {
-	row := q.db.QueryRowContext(ctx, getPostById, id)
-	var i Post
-	err := row.Scan(
-		&i.ID,
-		&i.Uuid,
-		&i.Body,
-		&i.ThreadID,
-		&i.CreatedAt,
-		&i.UserID,
-	)
-	return i, err
+type GetPostByThreadUuidRow struct {
+	PostUuid      uuid.UUID
+	Body          string
+	PostCreatedAt time.Time
+	ThreadUuid    uuid.UUID
+	UserUuid      uuid.UUID
 }
 
-const getPostByThreadId = `-- name: GetPostByThreadId :many
-SELECT id, uuid, body, thread_id, created_at, user_id FROM posts WHERE thread_id = $1
-`
-
-func (q *Queries) GetPostByThreadId(ctx context.Context, threadID int32) ([]Post, error) {
-	rows, err := q.db.QueryContext(ctx, getPostByThreadId, threadID)
+func (q *Queries) GetPostByThreadUuid(ctx context.Context, argUuid uuid.UUID) ([]GetPostByThreadUuidRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPostByThreadUuid, argUuid)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Post
+	var items []GetPostByThreadUuidRow
 	for rows.Next() {
-		var i Post
+		var i GetPostByThreadUuidRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.Uuid,
+			&i.PostUuid,
 			&i.Body,
-			&i.ThreadID,
-			&i.CreatedAt,
-			&i.UserID,
+			&i.PostCreatedAt,
+			&i.ThreadUuid,
+			&i.UserUuid,
 		); err != nil {
 			return nil, err
 		}
@@ -168,26 +193,44 @@ func (q *Queries) GetPostByThreadId(ctx context.Context, threadID int32) ([]Post
 	return items, nil
 }
 
-const getPostByUserId = `-- name: GetPostByUserId :many
-SELECT id, uuid, body, thread_id, created_at, user_id FROM posts WHERE user_id = $1
+const getPostByUserUuid = `-- name: GetPostByUserUuid :many
+SELECT 
+    posts.uuid AS post_uuid,
+    posts.body,
+    posts.created_at AS post_created_at,
+    threads.uuid AS thread_uuid,
+    users.uuid AS user_uuid
+FROM 
+    posts 
+JOIN threads ON posts.thread_id = threads.id
+JOIN users ON posts.user_id = users.id
+WHERE
+    users.uuid = $1
 `
 
-func (q *Queries) GetPostByUserId(ctx context.Context, userID int32) ([]Post, error) {
-	rows, err := q.db.QueryContext(ctx, getPostByUserId, userID)
+type GetPostByUserUuidRow struct {
+	PostUuid      uuid.UUID
+	Body          string
+	PostCreatedAt time.Time
+	ThreadUuid    uuid.UUID
+	UserUuid      uuid.UUID
+}
+
+func (q *Queries) GetPostByUserUuid(ctx context.Context, argUuid uuid.UUID) ([]GetPostByUserUuidRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPostByUserUuid, argUuid)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Post
+	var items []GetPostByUserUuidRow
 	for rows.Next() {
-		var i Post
+		var i GetPostByUserUuidRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.Uuid,
+			&i.PostUuid,
 			&i.Body,
-			&i.ThreadID,
-			&i.CreatedAt,
-			&i.UserID,
+			&i.PostCreatedAt,
+			&i.ThreadUuid,
+			&i.UserUuid,
 		); err != nil {
 			return nil, err
 		}
@@ -203,59 +246,79 @@ func (q *Queries) GetPostByUserId(ctx context.Context, userID int32) ([]Post, er
 }
 
 const getPostByUuid = `-- name: GetPostByUuid :one
-SELECT id, uuid, body, thread_id, created_at, user_id FROM posts WHERE uuid = $1
+SELECT 
+    posts.uuid AS post_uuid,
+    posts.body,
+    posts.created_at AS post_created_at,
+    threads.uuid AS thread_uuid,
+    users.uuid AS user_uuid
+FROM 
+    posts 
+JOIN threads ON posts.thread_id = threads.id
+JOIN users ON posts.user_id = users.id
+WHERE
+    posts.uuid = $1
 `
 
-func (q *Queries) GetPostByUuid(ctx context.Context, argUuid uuid.UUID) (Post, error) {
+type GetPostByUuidRow struct {
+	PostUuid      uuid.UUID
+	Body          string
+	PostCreatedAt time.Time
+	ThreadUuid    uuid.UUID
+	UserUuid      uuid.UUID
+}
+
+func (q *Queries) GetPostByUuid(ctx context.Context, argUuid uuid.UUID) (GetPostByUuidRow, error) {
 	row := q.db.QueryRowContext(ctx, getPostByUuid, argUuid)
-	var i Post
+	var i GetPostByUuidRow
 	err := row.Scan(
-		&i.ID,
-		&i.Uuid,
+		&i.PostUuid,
 		&i.Body,
-		&i.ThreadID,
-		&i.CreatedAt,
-		&i.UserID,
+		&i.PostCreatedAt,
+		&i.ThreadUuid,
+		&i.UserUuid,
 	)
 	return i, err
 }
 
-const getThreadById = `-- name: GetThreadById :one
-SELECT id, uuid, topic, created_at, user_id FROM threads WHERE id = $1
+const getThreadByUserUuid = `-- name: GetThreadByUserUuid :many
+SELECT 
+    threads.id,
+    threads.uuid AS thread_uuid,
+    threads.topic,
+    threads.created_at AS thread_created_at,
+    users.uuid AS user_uuid
+FROM 
+    threads 
+JOIN 
+    users ON threads.user_id = users.id
+WHERE
+    users.uuid = $1
 `
 
-func (q *Queries) GetThreadById(ctx context.Context, id int32) (Thread, error) {
-	row := q.db.QueryRowContext(ctx, getThreadById, id)
-	var i Thread
-	err := row.Scan(
-		&i.ID,
-		&i.Uuid,
-		&i.Topic,
-		&i.CreatedAt,
-		&i.UserID,
-	)
-	return i, err
+type GetThreadByUserUuidRow struct {
+	ID              int32
+	ThreadUuid      uuid.UUID
+	Topic           string
+	ThreadCreatedAt time.Time
+	UserUuid        uuid.UUID
 }
 
-const getThreadByUserId = `-- name: GetThreadByUserId :many
-SELECT id, uuid, topic, created_at, user_id FROM threads WHERE user_id = $1
-`
-
-func (q *Queries) GetThreadByUserId(ctx context.Context, userID int32) ([]Thread, error) {
-	rows, err := q.db.QueryContext(ctx, getThreadByUserId, userID)
+func (q *Queries) GetThreadByUserUuid(ctx context.Context, argUuid uuid.UUID) ([]GetThreadByUserUuidRow, error) {
+	rows, err := q.db.QueryContext(ctx, getThreadByUserUuid, argUuid)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Thread
+	var items []GetThreadByUserUuidRow
 	for rows.Next() {
-		var i Thread
+		var i GetThreadByUserUuidRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.Uuid,
+			&i.ThreadUuid,
 			&i.Topic,
-			&i.CreatedAt,
-			&i.UserID,
+			&i.ThreadCreatedAt,
+			&i.UserUuid,
 		); err != nil {
 			return nil, err
 		}
@@ -271,48 +334,52 @@ func (q *Queries) GetThreadByUserId(ctx context.Context, userID int32) ([]Thread
 }
 
 const getThreadByUuid = `-- name: GetThreadByUuid :one
-SELECT id, uuid, topic, created_at, user_id FROM threads WHERE uuid = $1
+SELECT 
+    threads.uuid AS thread_uuid,
+    threads.topic,
+    threads.created_at AS thread_created_at,
+    users.uuid AS user_uuid
+FROM
+    threads
+JOIN
+    users ON threads.user_id = users.id
+WHERE threads.uuid = $1
 `
 
-func (q *Queries) GetThreadByUuid(ctx context.Context, argUuid uuid.UUID) (Thread, error) {
-	row := q.db.QueryRowContext(ctx, getThreadByUuid, argUuid)
-	var i Thread
-	err := row.Scan(
-		&i.ID,
-		&i.Uuid,
-		&i.Topic,
-		&i.CreatedAt,
-		&i.UserID,
-	)
-	return i, err
+type GetThreadByUuidRow struct {
+	ThreadUuid      uuid.UUID
+	Topic           string
+	ThreadCreatedAt time.Time
+	UserUuid        uuid.UUID
 }
 
-const getUserById = `-- name: GetUserById :one
-SELECT id, uuid, username, password, created_at FROM users WHERE id = $1
-`
-
-func (q *Queries) GetUserById(ctx context.Context, id int32) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserById, id)
-	var i User
+func (q *Queries) GetThreadByUuid(ctx context.Context, argUuid uuid.UUID) (GetThreadByUuidRow, error) {
+	row := q.db.QueryRowContext(ctx, getThreadByUuid, argUuid)
+	var i GetThreadByUuidRow
 	err := row.Scan(
-		&i.ID,
-		&i.Uuid,
-		&i.Username,
-		&i.Password,
-		&i.CreatedAt,
+		&i.ThreadUuid,
+		&i.Topic,
+		&i.ThreadCreatedAt,
+		&i.UserUuid,
 	)
 	return i, err
 }
 
 const getUserByName = `-- name: GetUserByName :one
-SELECT id, uuid, username, password, created_at FROM users WHERE username = $1
+SELECT uuid, username, password, created_at FROM users WHERE username = $1
 `
 
-func (q *Queries) GetUserByName(ctx context.Context, username string) (User, error) {
+type GetUserByNameRow struct {
+	Uuid      uuid.UUID
+	Username  string
+	Password  string
+	CreatedAt time.Time
+}
+
+func (q *Queries) GetUserByName(ctx context.Context, username string) (GetUserByNameRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserByName, username)
-	var i User
+	var i GetUserByNameRow
 	err := row.Scan(
-		&i.ID,
 		&i.Uuid,
 		&i.Username,
 		&i.Password,
@@ -322,14 +389,20 @@ func (q *Queries) GetUserByName(ctx context.Context, username string) (User, err
 }
 
 const getUserByUuid = `-- name: GetUserByUuid :one
-SELECT id, uuid, username, password, created_at FROM users WHERE uuid = $1
+SELECT uuid, username, password, created_at FROM users WHERE uuid = $1
 `
 
-func (q *Queries) GetUserByUuid(ctx context.Context, argUuid uuid.UUID) (User, error) {
+type GetUserByUuidRow struct {
+	Uuid      uuid.UUID
+	Username  string
+	Password  string
+	CreatedAt time.Time
+}
+
+func (q *Queries) GetUserByUuid(ctx context.Context, argUuid uuid.UUID) (GetUserByUuidRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserByUuid, argUuid)
-	var i User
+	var i GetUserByUuidRow
 	err := row.Scan(
-		&i.ID,
 		&i.Uuid,
 		&i.Username,
 		&i.Password,

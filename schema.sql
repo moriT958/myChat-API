@@ -9,6 +9,8 @@ CREATE TABLE "users" (
     UNIQUE ("username")
 );
 
+CREATE INDEX idx_users_uuid ON users(uuid);
+
 CREATE TABLE "threads" (
     "id" SERIAL NOT NULL,
     "uuid" UUID NOT NULL,
@@ -23,6 +25,8 @@ CREATE TABLE "threads" (
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
 );
+
+CREATE INDEX idx_threads_uuid ON threads(uuid);
 
 CREATE TABLE "posts" (
     "id" SERIAL,
@@ -43,3 +47,4 @@ CREATE TABLE "posts" (
         ON DELETE NO ACTION
 );  
 
+CREATE INDEX idx_posts_uuid ON posts(uuid);

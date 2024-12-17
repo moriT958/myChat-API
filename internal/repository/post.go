@@ -2,10 +2,9 @@ package repository
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"myChat-API/internal/domain"
-	"myChat-API/internal/query"
+	"myChat-API2/internal/domain"
+	"myChat-API2/internal/query"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -18,73 +17,75 @@ func NewPostRepository(q *query.Queries) *PostRepository {
 	return &PostRepository{Queries: q}
 }
 
-func (r *PostRepository) GetThreadByUuid(ctx context.Context, postUuid string) (domain.Thread, error) {
-
-	params, err := uuid.Parse(postUuid)
+func (r *PostRepository) Save(ctx context.Context, post domain.Post) error {
+	createdAt, err := time.Parse("2006-01-02 15:04:05", post.CreatedAt)
 	if err != nil {
-		return domain.Thread{}, errors.New("failed to parse post uuid")
-	}
-	p, err := r.Queries.GetPostByUuid(ctx, params)
-	if err != nil {
-		return domain.Thread{}, err
+		return err
 	}
 
-	t, err := r.Queries.GetThreadById(ctx, p.ThreadID)
-	if err != nil {
-		return domain.Thread{}, err
-	}
-
-	threadEntity := domain.Thread{
-		Uuid:   t.Uuid.String(),
-		Topic:  t.Topic,
-		UserId: int(t.UserID),
-	}
-	return threadEntity, nil
-}
-
-func (r *PostRepository) SavePost(ctx context.Context, p domain.Post) error {
 	params := query.CreatePostParams{
-		Uuid:     uuid.MustParse(p.Uuid),
-		Body:     p.Body,
-		ThreadID: int32(p.ThreadId),
-		UserID:   int32(p.UserId),
+		Uuid:      uuid.MustParse(post.ID),
+		Body:      post.Body,
+		CreatedAt: createdAt,
+		Uuid_2:    uuid.MustParse(post.ThreadID),
+		Uuid_3:    uuid.MustParse(post.UserID),
 	}
 	if err := r.Queries.CreatePost(ctx, params); err != nil {
-		return fmt.Errorf("failed to save post data: %w\n", err)
+		return err
 	}
-
 	return nil
 }
 
-func (r *PostRepository) GetPostsByThreadUuid(ctx context.Context, threadUuid string) ([]domain.Post, error) {
-	t, err := r.Queries.GetThreadByUuid(ctx, uuid.MustParse(threadUuid))
+func (r *PostRepository) GetByID(ctx context.Context, id string) (domain.Post, error) {
+	p, err := r.Queries.GetPostByUuid(ctx, uuid.MustParse(id))
 	if err != nil {
-		return nil, err
+		return domain.Post{}, err
 	}
 
-	pl, err := r.Queries.GetPostByThreadId(ctx, int32(t.ID))
-	if err != nil {
-		return nil, err
+	post := domain.Post{
+		ID:        p.PostUuid.String(),
+		Body:      p.Body,
+		ThreadID:  p.ThreadUuid.String(),
+		UserID:    p.UserUuid.String(),
+		CreatedAt: p.PostCreatedAt.Format("2006-01-02 15:04:05"),
 	}
-
-	postEntities := make([]domain.Post, len(pl))
-	for i, p := range pl {
-		postEntities[i] = domain.Post{
-			Uuid:     p.Uuid.String(),
-			Body:     p.Body,
-			ThreadId: int(p.ThreadID),
-			UserId:   int(p.UserID),
-		}
-	}
-
-	return postEntities, nil
+	return post, nil
 }
 
-func (r *PostRepository) GetCreatedAt(ctx context.Context, postUuid string) (string, error) {
-	p, err := r.Queries.GetPostByUuid(ctx, uuid.MustParse(postUuid))
+func (r *PostRepository) GetByThreadID(ctx context.Context, threadId string) ([]domain.Post, error) {
+	pl, err := r.Queries.GetPostByThreadUuid(ctx, uuid.MustParse(threadId))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return p.CreatedAt.Format("2006-01-02 15:04:05"), nil
 
+	posts := make([]domain.Post, len(pl))
+	for i, p := range pl {
+		posts[i] = domain.Post{
+			ID:        p.PostUuid.String(),
+			Body:      p.Body,
+			ThreadID:  p.ThreadUuid.String(),
+			UserID:    p.UserUuid.String(),
+			CreatedAt: p.PostCreatedAt.Format("2006-01-02 15:04:05"),
+		}
+	}
+	return posts, nil
+}
+
+func (r *PostRepository) GetByUserID(ctx context.Context, userId string) ([]domain.Post, error) {
+	pl, err := r.Queries.GetPostByThreadUuid(ctx, uuid.MustParse(userId))
+	if err != nil {
+		return nil, err
+	}
+
+	posts := make([]domain.Post, len(pl))
+	for i, p := range pl {
+		posts[i] = domain.Post{
+			ID:        p.PostUuid.String(),
+			Body:      p.Body,
+			ThreadID:  p.ThreadUuid.String(),
+			UserID:    p.UserUuid.String(),
+			CreatedAt: p.PostCreatedAt.Format("2006-01-02 15:04:05"),
+		}
+	}
+	return posts, nil
 }
