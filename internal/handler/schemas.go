@@ -5,10 +5,10 @@ package handler
 //
 
 type BaseThreadResponse struct {
-	Uuid      string `json:"uuid"`
+	Uuid      string `json:"id"`
 	Topic     string `json:"topic"`
 	CreatedAt string `json:"createdAt"`
-	UserId    int    `json:"user_id"`
+	UserUuid  string `json:"userId"`
 }
 
 type CreateThreadRequest struct {
@@ -16,7 +16,7 @@ type CreateThreadRequest struct {
 }
 
 type CreateThreadResponses struct {
-	Uuid string `json:"uuid"`
+	Uuid string `json:"id"`
 }
 
 type GetThreadListResponse struct {
@@ -24,18 +24,11 @@ type GetThreadListResponse struct {
 }
 
 type GetThreadDetailResponse struct {
-	Uuid      string         `json:"uuid"`
-	Topic     string         `json:"topic"`
-	CreatedAt string         `json:"createdAt"`
-	Posts     []PostOnThread `json:"posts"`
-	Username  string         `json:"username"`
-}
-
-type PostOnThread struct {
-	Uuid      string `json:"uuid"`
-	Body      string `json:"body"`
-	CreatedAt string `json:"createdAt"`
-	Username  string `json:"username"`
+	Uuid      string             `json:"id"`
+	Topic     string             `json:"topic"`
+	CreatedAt string             `json:"createdAt"`
+	Posts     []BasePostResponse `json:"posts"`
+	UserUuid  string             `json:"userId"`
 }
 
 // User schemas (rest)
@@ -44,13 +37,17 @@ type CreateUserRequest struct {
 	Password string `json:"password"`
 }
 
+type CreateUserResponse struct {
+	Uuid string `json:"id"`
+}
+
 type GetTokenResponse struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
 }
 
 type GetUserResponse struct {
-	Uuid      string `json:"uuid"`
+	Uuid      string `json:"id"`
 	Username  string `json:"username"`
 	CreatedAt string `json:"create_at"`
 }
@@ -59,16 +56,15 @@ type GetUserResponse struct {
 // Post schemas (websocket)
 //
 
-type InMessage struct {
+type BasePostResponse struct {
+	Uuid       string `json:"id"`
 	Body       string `json:"body"`
-	ThreadUuid string `json:"threadUuid"`
-	Username   string `json:"username"`
+	CreatedAt  string `json:"createdAt"`
+	ThreadUuid string `json:"threadId"`
+	UserUuid   string `json:"userId"`
 }
 
-type OutMessage struct {
-	Uuid       string `json:"uuid"`
+type CreatePostRequest struct {
 	Body       string `json:"body"`
-	ThreadUuid string `json:"threadUuid"`
-	CreatedAt  string `json:"createdAt"`
-	Username   string `json:"username"`
+	ThreadUuid string `json:"threadId"`
 }
