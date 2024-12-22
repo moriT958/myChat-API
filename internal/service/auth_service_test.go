@@ -9,9 +9,7 @@ import (
 
 func TestSignup(t *testing.T) {
 	userRepo := new(testdata.MockUserRepository)
-	authService := service.AuthService{
-		UserRepo: userRepo,
-	}
+	authService := service.NewAuthService(userRepo)
 
 	ctx := context.Background()
 	var tests = []struct {
