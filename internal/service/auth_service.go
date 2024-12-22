@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"myChat-API2/internal/domain"
 	"os"
@@ -29,6 +30,9 @@ func NewAuthService(ur domain.IUserRepository) *AuthService {
 }
 
 func (s *AuthService) Signup(ctx context.Context, username string, password string) (string, error) {
+	if password == "" {
+		return "", errors.New("require password")
+	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
