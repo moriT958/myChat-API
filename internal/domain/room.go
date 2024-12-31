@@ -11,7 +11,7 @@ type IRoomRepository interface {
 
 type Room struct {
 	ID        string
-	Topic     string
+	Name      string
 	CreatedAt string
 	UserID    string
 }

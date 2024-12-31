@@ -23,14 +23,10 @@ func NewTodoServer(
 ) *TodoServer {
 	s := new(TodoServer)
 	mux := http.NewServeMux()
-	mux.Handle("POST /threads", s.AuthMiddleware(s.CreateThreadHandler))
-	mux.Handle("GET /threads", http.HandlerFunc(s.GetThreadListHandler))
-	mux.Handle("GET /threads/{threadID}", http.HandlerFunc(s.ReadThreadDetailHandler))
+	mux.Handle("POST /rooms", s.AuthMiddleware(s.CreateRoomHandler))
+	mux.Handle("GET /rooms", http.HandlerFunc(s.GetRoomListHandler))
+	mux.Handle("GET /rooms/{roomID}", http.HandlerFunc(s.ReadRoomDetailHandler))
 
-	// get user info function
-	mux.HandleFunc("GET /users/{userID}", http.HandlerFunc(s.GetUserHandler))
-
-	// auth functions
 	mux.HandleFunc("POST /signup", http.HandlerFunc(s.SignupHandler))
 	mux.HandleFunc("POST /login", http.HandlerFunc(s.LoginHandler))
 
@@ -39,7 +35,7 @@ func NewTodoServer(
 
 	// posting functions
 	go ws.Hub.Start()
-	mux.Handle("/ws", s.AuthMiddleware(ws.PostHandler))
+	mux.Handle("/ws", s.AuthMiddleware(ws.ChatHandler))
 
 	s.Addr = config.Address()
 	s.Handler = mux
@@ -54,7 +50,7 @@ func NewTodoServer(
 }
 
 func (s *TodoServer) Run() {
-	fmt.Printf("JustDoIt Version %s:\nServer starting at %s...\n", config.Version(), s.Addr)
+	fmt.Printf("termChat Version %s:\nServer starting at %s...\n", config.Version(), s.Addr)
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt)
 

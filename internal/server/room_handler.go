@@ -7,13 +7,13 @@ import (
 	"strconv"
 )
 
-func (h *TodoServer) CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TodoServer) CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Parse Request
-	var reqNewThread CreateThreadRequest
-	err := json.NewDecoder(r.Body).Decode(&reqNewThread)
-	if err != nil || reqNewThread.Topic == "" {
+	var reqNewRoom CreateRoomRequest
+	err := json.NewDecoder(r.Body).Decode(&reqNewRoom)
+	if err != nil || reqNewRoom.Name == "" {
 		log.Println(err)
 		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 		return
@@ -21,7 +21,7 @@ func (h *TodoServer) CreateThreadHandler(w http.ResponseWriter, r *http.Request)
 
 	// Create Thread.
 	userID := getUserID(ctx)
-	threadID, err := h.ChatService.CreateThread(ctx, reqNewThread.Topic, userID)
+	roomID, err := h.ChatService.CreateRoom(ctx, reqNewRoom.Name, userID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Failed to post thread.", http.StatusInternalServerError)
@@ -29,8 +29,8 @@ func (h *TodoServer) CreateThreadHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Generate response.
-	res := CreateThreadResponses{
-		Uuid: threadID,
+	res := CreateRoomResponses{
+		ID: roomID,
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
@@ -41,7 +41,7 @@ func (h *TodoServer) CreateThreadHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (h *TodoServer) GetThreadListHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TodoServer) GetRoomListHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	q, err := getQueryParams(r)
@@ -51,22 +51,22 @@ func (h *TodoServer) GetThreadListHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	threads, err := h.ChatService.ShowAllThreads(ctx, q["limit"], q["offset"])
+	rooms, err := h.ChatService.ShowAllRooms(ctx, q["page"])
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Failed to read threads.", http.StatusInternalServerError)
+		http.Error(w, "Failed to read rooms.", http.StatusInternalServerError)
 		return
 	}
 
 	// Generate response.
-	var res GetThreadListResponse
-	res.Threads = make([]BaseThreadResponse, len(threads))
-	for i, t := range threads {
-		res.Threads[i] = BaseThreadResponse{
-			Uuid:      t.ID,
-			Topic:     t.Topic,
-			CreatedAt: t.CreatedAt,
-			UserUuid:  t.UserID,
+	var res GetRoomListResponse
+	res.Rooms = make([]BaseRoomResponse, len(rooms))
+	for i, r := range rooms {
+		res.Rooms[i] = BaseRoomResponse{
+			ID:        r.ID,
+			Name:      r.Name,
+			CreatedAt: r.CreatedAt,
+			UserID:    r.UserID,
 		}
 	}
 
@@ -79,6 +79,8 @@ func (h *TodoServer) GetThreadListHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// TODO:
+// need to fix
 func getQueryParams(r *http.Request) (map[string]int, error) {
 	res := map[string]int{
 		"offset": 0,
@@ -106,34 +108,34 @@ func getQueryParams(r *http.Request) (map[string]int, error) {
 	return res, nil
 }
 
-func (h *TodoServer) ReadThreadDetailHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TodoServer) ReadRoomDetailHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var threadID string = r.PathValue("threadID")
+	var roomID string = r.PathValue("roomID")
 
-	thread, posts, err := h.ChatService.SeeThreadDetail(ctx, threadID)
+	room, chats, err := h.ChatService.SeeRoomDetail(ctx, roomID)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Failed to read thread.", http.StatusInternalServerError)
+		http.Error(w, "Failed to read room.", http.StatusInternalServerError)
 		return
 	}
 
 	// Generate response.
-	res := GetThreadDetailResponse{
-		Uuid:      thread.ID,
-		Topic:     thread.Topic,
-		CreatedAt: thread.CreatedAt,
-		Posts:     make([]BasePostResponse, len(posts)),
-		UserUuid:  thread.UserID,
+	res := GetRoomDetailResponse{
+		ID:        room.ID,
+		Name:      room.Name,
+		CreatedAt: room.CreatedAt,
+		Chats:     make([]BaseChatResponse, len(chats)),
+		UserID:    room.UserID,
 	}
 
-	for i, p := range posts {
-		res.Posts[i] = BasePostResponse{
-			Uuid:       p.ID,
-			Body:       p.Body,
-			CreatedAt:  p.CreatedAt,
-			ThreadUuid: p.ThreadID,
-			UserUuid:   p.UserID,
+	for i, c := range chats {
+		res.Chats[i] = BaseChatResponse{
+			ID:        c.ID,
+			Body:      c.Body,
+			CreatedAt: c.CreatedAt,
+			RoomID:    c.RoomID,
+			UserID:    c.UserID,
 		}
 	}
 
