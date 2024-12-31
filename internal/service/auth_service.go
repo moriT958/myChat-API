@@ -12,9 +12,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// TODO:
-// Add secret key to config obj.
-
 type IAuthService interface {
 	Signup(context.Context, string, string) (string, error)
 	Login(context.Context, string, string) (string, error)

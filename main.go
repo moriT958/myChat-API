@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"log"
+	"log/slog"
+	"myChat-API2/internal/config"
 	"myChat-API2/internal/handler"
 	"myChat-API2/internal/query"
 	"myChat-API2/internal/repository"
@@ -14,9 +16,15 @@ import (
 )
 
 func init() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Failed to load .env file.")
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
+	if err := godotenv.Load(); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := config.Load("config.json"); err != nil {
+		log.Fatal(err)
 	}
 }
 
