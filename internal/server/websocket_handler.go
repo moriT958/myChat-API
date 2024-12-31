@@ -1,4 +1,4 @@
-package handler
+package server
 
 import (
 	"log"
@@ -9,13 +9,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type WSHandler struct {
+type ServerWS struct {
 	Hub         *Hub
 	ChatService service.IChatService
 }
 
-func NewWSHandler(hub *Hub, cs service.IChatService) *WSHandler {
-	return &WSHandler{
+func NewServerWS(hub *Hub, cs service.IChatService) *ServerWS {
+	return &ServerWS{
 		Hub:         hub,
 		ChatService: cs,
 	}

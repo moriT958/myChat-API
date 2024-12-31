@@ -1,11 +1,11 @@
-package handler
+package server
 
 import (
 	"log"
 	"net/http"
 )
 
-func (ws *WSHandler) PostHandler(w http.ResponseWriter, r *http.Request) {
+func (ws *ServerWS) PostHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
