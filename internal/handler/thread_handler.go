@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func (h *Handlers) CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TodoServer) CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Parse Request
@@ -41,7 +41,7 @@ func (h *Handlers) CreateThreadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handlers) GetThreadListHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TodoServer) GetThreadListHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	q, err := getQueryParams(r)
@@ -106,7 +106,7 @@ func getQueryParams(r *http.Request) (map[string]int, error) {
 	return res, nil
 }
 
-func (h *Handlers) ReadThreadDetailHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TodoServer) ReadThreadDetailHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var threadID string = r.PathValue("threadID")

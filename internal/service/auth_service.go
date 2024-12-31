@@ -21,6 +21,8 @@ type IAuthService interface {
 	SeeUserDetail(context.Context, string) (domain.User, string, error)
 }
 
+var _ IAuthService = (*AuthService)(nil)
+
 type AuthService struct {
 	UserRepo domain.IUserRepository
 }

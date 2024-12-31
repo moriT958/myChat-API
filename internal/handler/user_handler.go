@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func (h *Handlers) GetUserHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TodoServer) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var userID string = r.PathValue("userID")
 

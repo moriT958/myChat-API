@@ -11,7 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func (h *Handlers) AuthMiddleware(next http.HandlerFunc) http.Handler {
+func (h *TodoServer) AuthMiddleware(next http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		claims, err := validateJWT(r)
 
