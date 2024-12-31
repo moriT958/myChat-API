@@ -1,4 +1,4 @@
-package handler
+package server
 
 import (
 	"fmt"
@@ -35,11 +35,11 @@ func NewTodoServer(
 	mux.HandleFunc("POST /login", http.HandlerFunc(s.LoginHandler))
 
 	hub := NewHub()
-	wsHandler := NewWSHandler(hub, cs)
+	ws := NewServerWS(hub, cs)
 
 	// posting functions
-	go wsHandler.Hub.Start()
-	mux.Handle("/ws", s.AuthMiddleware(wsHandler.PostHandler))
+	go ws.Hub.Start()
+	mux.Handle("/ws", s.AuthMiddleware(ws.PostHandler))
 
 	s.Addr = config.Address()
 	s.Handler = mux

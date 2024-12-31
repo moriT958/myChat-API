@@ -5,9 +5,9 @@ import (
 	"log"
 	"log/slog"
 	"myChat-API2/internal/config"
-	"myChat-API2/internal/handler"
 	"myChat-API2/internal/query"
 	"myChat-API2/internal/repository"
+	"myChat-API2/internal/server"
 	"myChat-API2/internal/service"
 	"os"
 
@@ -44,7 +44,7 @@ func main() {
 	postRepo := repository.NewPostRepository(queries)
 	authService := service.NewAuthService(userRepo)
 	chatService := service.NewChatService(threadRepo, postRepo, userRepo)
-	srv := handler.NewTodoServer(authService, chatService)
+	srv := server.NewTodoServer(authService, chatService)
 
 	srv.Run()
 }
