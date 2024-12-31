@@ -58,12 +58,3 @@ func (r *UserRepository) GetByName(ctx context.Context, name string) (domain.Use
 	}
 	return user, nil
 }
-
-func (r *UserRepository) GetCreatedAtByID(ctx context.Context, userID string) (string, error) {
-	u, err := r.GetUserByUuid(ctx, uuid.MustParse(userID))
-	if err != nil {
-		return "", err
-	}
-
-	return u.CreatedAt.Format("2006-01-02 15:04:05"), nil
-}

@@ -5,8 +5,7 @@ import "context"
 type IChatRepository interface {
 	Save(context.Context, Chat) error
 	GetByID(context.Context, string) (Chat, error)
-	GetByThreadID(context.Context, string) ([]Chat, error)
-	GetByUserID(context.Context, string) ([]Chat, error)
+	GetByRoomID(context.Context, string) ([]Chat, error)
 }
 
 type Chat struct {
