@@ -15,7 +15,6 @@ import (
 type IAuthService interface {
 	Signup(context.Context, string, string) (string, error)
 	Login(context.Context, string, string) (string, error)
-	SeeUserDetail(context.Context, string) (domain.User, string, error)
 }
 
 var _ IAuthService = (*AuthService)(nil)
@@ -87,18 +86,4 @@ func (s *AuthService) Login(ctx context.Context, username string, password strin
 	// Generate jwt token.
 	token, err := generateJWT(u.ID)
 	return token, nil
-}
-
-func (s *AuthService) SeeUserDetail(ctx context.Context, userID string) (domain.User, string, error) {
-	user, err := s.UserRepo.GetByID(ctx, userID)
-	if err != nil {
-		return domain.User{}, "", err
-	}
-
-	createdAt, err := s.UserRepo.GetCreatedAtByID(ctx, userID)
-	if err != nil {
-		return domain.User{}, "", err
-	}
-
-	return user, createdAt, nil
 }

@@ -39,11 +39,14 @@ func main() {
 
 	// Init Dependency
 	queries := query.New(db)
+
 	userRepo := repository.NewUserRepository(queries)
-	threadRepo := repository.NewThreadRepository(queries)
-	postRepo := repository.NewPostRepository(queries)
+	threadRepo := repository.NewRoomRepository(queries)
+	postRepo := repository.NewChatRepository(queries)
+
 	authService := service.NewAuthService(userRepo)
 	chatService := service.NewChatService(threadRepo, postRepo, userRepo)
+
 	srv := server.NewTodoServer(authService, chatService)
 
 	srv.Run()

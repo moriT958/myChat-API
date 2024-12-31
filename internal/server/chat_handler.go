@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (ws *ServerWS) PostHandler(w http.ResponseWriter, r *http.Request) {
+func (ws *ServerWS) ChatHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -20,29 +20,29 @@ func (ws *ServerWS) PostHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	for {
-		var newPost CreatePostRequest
-		err := conn.ReadJSON(&newPost)
+		var newChat CreateChatRequest
+		err := conn.ReadJSON(&newChat)
 		if err != nil {
 			log.Println(err, "Marker")
 			break
 		}
-		log.Printf("Recieved: %+v\n", newPost)
+		log.Printf("Recieved: %+v\n", newChat)
 
-		body := newPost.Body
-		threadID := newPost.ThreadUuid
+		body := newChat.Body
+		roomID := newChat.RoomID
 		userID := getUserID(ctx)
-		post, err := ws.ChatService.CreatePost(ctx, body, threadID, userID)
+		chat, err := ws.ChatService.CreateChat(ctx, body, roomID, userID)
 		if err != nil {
 			log.Println("Failed to post: ", err)
 			break
 		}
 
-		res := BasePostResponse{
-			Uuid:       post.ID,
-			Body:       post.Body,
-			CreatedAt:  post.CreatedAt,
-			ThreadUuid: post.ThreadID,
-			UserUuid:   post.UserID,
+		res := BaseChatResponse{
+			ID:        chat.ID,
+			Body:      chat.Body,
+			CreatedAt: chat.CreatedAt,
+			RoomID:    chat.RoomID,
+			UserID:    chat.UserID,
 		}
 
 		ws.Hub.broadcast <- res

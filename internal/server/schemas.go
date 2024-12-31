@@ -4,31 +4,31 @@ package server
 // Thread schemas (rest)
 //
 
-type BaseThreadResponse struct {
-	Uuid      string `json:"id"`
-	Topic     string `json:"topic"`
+type BaseRoomResponse struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
 	CreatedAt string `json:"createdAt"`
-	UserUuid  string `json:"userId"`
+	UserID    string `json:"userId"`
 }
 
-type CreateThreadRequest struct {
-	Topic string `json:"topic"`
+type CreateRoomRequest struct {
+	Name string `json:"name"`
 }
 
-type CreateThreadResponses struct {
-	Uuid string `json:"id"`
+type CreateRoomResponses struct {
+	ID string `json:"id"`
 }
 
-type GetThreadListResponse struct {
-	Threads []BaseThreadResponse `json:"threads"`
+type GetRoomListResponse struct {
+	Rooms []BaseRoomResponse `json:"rooms"`
 }
 
-type GetThreadDetailResponse struct {
-	Uuid      string             `json:"id"`
-	Topic     string             `json:"topic"`
+type GetRoomDetailResponse struct {
+	ID        string             `json:"id"`
+	Name      string             `json:"name"`
 	CreatedAt string             `json:"createdAt"`
-	Posts     []BasePostResponse `json:"posts"`
-	UserUuid  string             `json:"userId"`
+	Chats     []BaseChatResponse `json:"chats"`
+	UserID    string             `json:"userId"`
 }
 
 // User schemas (rest)
@@ -38,7 +38,7 @@ type CreateUserRequest struct {
 }
 
 type CreateUserResponse struct {
-	Uuid string `json:"id"`
+	ID string `json:"id"`
 }
 
 type GetTokenResponse struct {
@@ -47,7 +47,7 @@ type GetTokenResponse struct {
 }
 
 type GetUserResponse struct {
-	Uuid      string `json:"id"`
+	ID        string `json:"id"`
 	Username  string `json:"username"`
 	CreatedAt string `json:"create_at"`
 }
@@ -56,15 +56,15 @@ type GetUserResponse struct {
 // Post schemas (websocket)
 //
 
-type BasePostResponse struct {
-	Uuid       string `json:"id"`
-	Body       string `json:"body"`
-	CreatedAt  string `json:"createdAt"`
-	ThreadUuid string `json:"threadId"`
-	UserUuid   string `json:"userId"`
+type BaseChatResponse struct {
+	ID        string `json:"id"`
+	Body      string `json:"body"`
+	CreatedAt string `json:"createdAt"`
+	RoomID    string `json:"roomId"`
+	UserID    string `json:"userId"`
 }
 
-type CreatePostRequest struct {
-	Body       string `json:"body"`
-	ThreadUuid string `json:"threadId"`
+type CreateChatRequest struct {
+	Body   string `json:"body"`
+	RoomID string `json:"roomId"`
 }

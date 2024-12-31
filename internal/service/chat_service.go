@@ -10,91 +10,93 @@ import (
 )
 
 type IChatService interface {
-	CreateThread(context.Context, string, string) (string, error)
-	ShowAllThreads(context.Context, int, int) ([]domain.Thread, error)
-	SeeThreadDetail(context.Context, string) (domain.Thread, []domain.Post, error)
-	CreatePost(context.Context, string, string, string) (domain.Post, error)
+	CreateRoom(context.Context, string, string) (string, error)
+	ShowAllRooms(context.Context, int) ([]domain.Room, error)
+	SeeRoomDetail(context.Context, string) (domain.Room, []domain.Chat, error)
+	CreateChat(context.Context, string, string, string) (domain.Chat, error)
 }
 
+var _ IChatService = (*ChatService)(nil)
+
 type ChatService struct {
-	ThreadRepo domain.IThreadRepository
-	PostRepo   domain.IPostRepository
-	UserRepo   domain.IUserRepository
+	RoomRepo domain.IRoomRepository
+	ChatRepo domain.IChatRepository
+	UserRepo domain.IUserRepository
 }
 
 func NewChatService(
-	tr domain.IThreadRepository,
-	pr domain.IPostRepository,
+	rr domain.IRoomRepository,
+	cr domain.IChatRepository,
 	ur domain.IUserRepository,
 ) *ChatService {
 	return &ChatService{
-		ThreadRepo: tr,
-		PostRepo:   pr,
-		UserRepo:   ur,
+		RoomRepo: rr,
+		ChatRepo: cr,
+		UserRepo: ur,
 	}
 }
 
-func (s *ChatService) CreateThread(ctx context.Context, topic string, userID string) (string, error) {
+func (s *ChatService) CreateRoom(ctx context.Context, topic string, userID string) (string, error) {
 	u, err := s.UserRepo.GetByID(ctx, userID)
 	if err != nil {
 		return "", fmt.Errorf("User doesn't exist: %w", err)
 	}
 
-	thread := domain.Thread{
+	room := domain.Room{
 		ID:        uuid.NewString(),
-		Topic:     topic,
+		Name:      topic,
 		CreatedAt: time.Now().Format("2006-01-02 15:04:05"),
 		UserID:    u.ID,
 	}
 
-	if err := s.ThreadRepo.Save(ctx, thread); err != nil {
+	if err := s.RoomRepo.Save(ctx, room); err != nil {
 		return "", err
 	}
 
-	return thread.ID, nil
+	return room.ID, nil
 }
 
-func (s *ChatService) ShowAllThreads(ctx context.Context, limit int, offset int) ([]domain.Thread, error) {
-	threads, err := s.ThreadRepo.GetAll(ctx, limit, offset)
+func (s *ChatService) ShowAllRooms(ctx context.Context, page int) ([]domain.Room, error) {
+	rooms, err := s.RoomRepo.GetAll(ctx, page)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load threads data: %w", err)
 	}
-	return threads, nil
+	return rooms, nil
 }
 
-func (s *ChatService) SeeThreadDetail(ctx context.Context, threadID string) (domain.Thread, []domain.Post, error) {
-	thread, err := s.ThreadRepo.GetByID(ctx, threadID)
+func (s *ChatService) SeeRoomDetail(ctx context.Context, roomID string) (domain.Room, []domain.Chat, error) {
+	room, err := s.RoomRepo.GetByID(ctx, roomID)
 	if err != nil {
-		return domain.Thread{}, nil, err
+		return domain.Room{}, nil, err
 	}
 
-	posts, err := s.PostRepo.GetByThreadID(ctx, threadID)
+	chats, err := s.ChatRepo.GetByRoomID(ctx, roomID)
 	if err != nil {
-		return thread, nil, fmt.Errorf("Failed to load posts data: %w", err)
+		return room, nil, fmt.Errorf("Failed to load posts data: %w", err)
 	}
 
-	return thread, posts, nil
+	return room, chats, nil
 }
 
-func (s *ChatService) CreatePost(ctx context.Context, body string, threadID string, userID string) (domain.Post, error) {
+func (s *ChatService) CreateChat(ctx context.Context, body string, roomID string, userID string) (domain.Chat, error) {
 	if _, err := s.UserRepo.GetByID(ctx, userID); err != nil {
-		return domain.Post{}, fmt.Errorf("User doesn't exist: %w", err)
+		return domain.Chat{}, fmt.Errorf("User doesn't exist: %w", err)
 	}
 
-	if _, err := s.ThreadRepo.GetByID(ctx, threadID); err != nil {
-		return domain.Post{}, fmt.Errorf("Thread doesn't exist: %w", err)
+	if _, err := s.RoomRepo.GetByID(ctx, roomID); err != nil {
+		return domain.Chat{}, fmt.Errorf("Thread doesn't exist: %w", err)
 	}
 
-	post := domain.Post{
+	post := domain.Chat{
 		ID:        uuid.NewString(),
 		Body:      body,
-		ThreadID:  threadID,
+		RoomID:    roomID,
 		UserID:    userID,
 		CreatedAt: time.Now().Format("2006-01-02 15:04:05"),
 	}
 
-	if err := s.PostRepo.Save(ctx, post); err != nil {
-		return domain.Post{}, fmt.Errorf("Failed to post: %w", err)
+	if err := s.ChatRepo.Save(ctx, post); err != nil {
+		return domain.Chat{}, fmt.Errorf("Failed to post: %w", err)
 	}
 
 	return post, nil
