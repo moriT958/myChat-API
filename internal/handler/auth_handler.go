@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func (h *Handlers) SignupHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TodoServer) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req CreateUserRequest
@@ -38,7 +38,7 @@ func (h *Handlers) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TodoServer) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	username := r.FormValue("username")
