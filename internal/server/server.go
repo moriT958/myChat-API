@@ -29,12 +29,8 @@ func NewTodoServer(
 	mux.HandleFunc("POST /signup", http.HandlerFunc(s.SignupHandler))
 	mux.HandleFunc("POST /login", http.HandlerFunc(s.LoginHandler))
 
-	hub := NewHub()
-	ws := NewServerWS(hub, cs)
-
-	// posting functions
-	go ws.Hub.Start()
-	mux.Handle("/ws", s.AuthMiddleware(ws.ChatHandler))
+	ws := NewServerWS(cs)
+	mux.Handle("/ws", s.AuthMiddleware(ws.ServeHTTP))
 
 	s.Handler = mux
 
