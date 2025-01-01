@@ -9,16 +9,25 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+var _ http.Handler = (*ServerWS)(nil)
+
 type ServerWS struct {
 	Hub         *Hub
 	ChatService service.IChatService
 }
 
-func NewServerWS(hub *Hub, cs service.IChatService) *ServerWS {
+func NewServerWS(cs service.IChatService) *ServerWS {
+	hub := NewHub()
+	go hub.Start()
+
 	return &ServerWS{
 		Hub:         hub,
 		ChatService: cs,
 	}
+}
+
+func (ws *ServerWS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ws.chatHandler(w, r)
 }
 
 var upgrader = websocket.Upgrader{

@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (ws *ServerWS) ChatHandler(w http.ResponseWriter, r *http.Request) {
+func (ws *ServerWS) chatHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
