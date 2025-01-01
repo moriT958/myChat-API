@@ -3,10 +3,12 @@ package dependency
 import (
 	"database/sql"
 	"log"
+	"myChat-API2/internal/config"
 	"myChat-API2/internal/repository"
 	"myChat-API2/internal/server"
 	"myChat-API2/internal/service"
 	"os"
+	"time"
 )
 
 func InitServer() *server.TodoServer {
@@ -26,6 +28,10 @@ func InitServer() *server.TodoServer {
 	chatService := service.NewChatService(roomRepo, chatRepo, userRepo)
 
 	srv := server.NewTodoServer(authService, chatService)
+
+	srv.Addr = config.Address()
+	srv.ReadTimeout = time.Duration(config.ReadTimeout() * int64(time.Second))
+	srv.WriteTimeout = time.Duration(config.WriteTimeout() * int64(time.Second))
 
 	return srv
 }

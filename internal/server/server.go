@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"time"
 )
 
 type TodoServer struct {
@@ -37,11 +36,7 @@ func NewTodoServer(
 	go ws.Hub.Start()
 	mux.Handle("/ws", s.AuthMiddleware(ws.ChatHandler))
 
-	s.Addr = config.Address()
 	s.Handler = mux
-
-	s.ReadTimeout = time.Duration(config.ReadTimeout() * int64(time.Second))
-	s.WriteTimeout = time.Duration(config.WriteTimeout() * int64(time.Second))
 
 	s.AuthService = as
 	s.ChatService = cs
