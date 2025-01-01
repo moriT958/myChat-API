@@ -1,18 +1,13 @@
 package main
 
 import (
-	"database/sql"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"log"
 	"log/slog"
 	"myChat-API2/internal/config"
-	"myChat-API2/internal/query"
-	"myChat-API2/internal/repository"
-	"myChat-API2/internal/server"
-	"myChat-API2/internal/service"
+	"myChat-API2/internal/dependency"
 	"os"
-
-	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
 )
 
 func init() {
@@ -29,25 +24,6 @@ func init() {
 }
 
 func main() {
-
-	dsn := os.Getenv("DATABASE_URL")
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	// Init Dependency
-	queries := query.New(db)
-
-	userRepo := repository.NewUserRepository(queries)
-	threadRepo := repository.NewRoomRepository(queries)
-	postRepo := repository.NewChatRepository(queries)
-
-	authService := service.NewAuthService(userRepo)
-	chatService := service.NewChatService(threadRepo, postRepo, userRepo)
-
-	srv := server.NewTodoServer(authService, chatService)
-
-	srv.Run()
+	s := dependency.InitServer()
+	s.Run()
 }
