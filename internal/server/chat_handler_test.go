@@ -35,21 +35,22 @@ func TestChatHandler(t *testing.T) {
 	}
 	defer wsConn.Close()
 
-	reqBody := []byte(`
-	{
-	"id":"test-id-1",
-	"body": "test-body-1",
-	"createdAt": "test-2001-11-04",
-	"roomId": "test-roomID-1",
-	"userID": "test-userID-1"
+	reqBody := map[string]string{
+		"body":   "test-body-1",
+		"roomId": "test-roomID-1",
 	}
-	`)
 	if err := wsConn.WriteJSON(reqBody); err != nil {
 		t.Fatal(err)
 	}
 
 	t.Run("crrectly response chat", func(t *testing.T) {
-		want := map[string]string{"body": "test-body-1", "roomId": "test-roomID-1"}
+		want := map[string]string{
+			"id":        "test-chatID-1",
+			"body":      "test-body-1",
+			"createdAt": "test-createdAt-1",
+			"roomId":    "test-roomID-1",
+			"userId":    "test-userID-1",
+		}
 		var got map[string]string
 		if err := wsConn.ReadJSON(&got); err != nil {
 			t.Fatal(err)

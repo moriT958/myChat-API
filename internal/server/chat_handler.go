@@ -23,7 +23,7 @@ func (ws *ServerWS) chatHandler(w http.ResponseWriter, r *http.Request) {
 		var newChat CreateChatRequest
 		err := conn.ReadJSON(&newChat)
 		if err != nil {
-			log.Println(err, "Marker")
+			log.Println(err)
 			break
 		}
 		log.Printf("Recieved: %+v\n", newChat)
